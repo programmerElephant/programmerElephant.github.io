@@ -24,6 +24,11 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+#home-section {
+  width: 100%;
+  overflow: hidden;
+}
+
 .icon-asterisk:before {
   content: "\f069";
 }

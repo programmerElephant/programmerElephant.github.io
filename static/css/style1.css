@@ -279,7 +279,7 @@ h1, h2, h3, h4, h5,
     padding: 4em 0; }
 
 .site-footer {
-  padding: 4em 0;
+  padding: 4em 0 2em;
   background: #000; }
   @media (min-width: 768px) {
     .site-footer {
@@ -1358,7 +1358,13 @@ h1, h2, h3, h4, h5,
 .fixed-content {
   position: -webkit-sticky;
   position: sticky;
-  top: .2rem; }
+  top: .2rem; 
+  padding: 0 8px;
+}
+
+.site-section {
+  padding: 0 8px;
+}
 
 .feature-3 {
   position: relative;

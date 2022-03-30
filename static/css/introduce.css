@@ -1,0 +1,58 @@
+li {
+    list-style: none;
+}
+ul {
+    margin: 0;
+    padding: 0;
+}
+
+.intro-cont {
+    background: #11122e;
+    padding: px 8px;
+}
+
+.userItem {
+    padding: 16px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, .05);
+}
+
+.userItem:last-child {
+    border: none;
+}
+.userItem .img {
+    margin-right: 16px;
+}
+
+.userItem .img img{
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+    border-radius: 50%;
+    float: left;
+    margin-right: 16px;
+}
+
+
+.img::after {
+    content: '';
+    display: block;
+    clear: both;
+}
+
+.infoBox {
+    float: left;
+}
+.infoBox .name {
+    font-size: 16px;
+    color: rgba(255, 255, 255, .65);
+}
+.infoBox .des {
+    font-size: 12px;
+    margin: 4px 0 8px;
+    color: rgba(255, 255, 255, .45);
+}
+.text {
+    font-size: 14px;
+    color: rgba(255, 255, 255, .25);
+    text-indent: 16px;
+}
