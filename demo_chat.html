@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LiteChat - 优化版设计</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'ios-blue': '#007AFF',
+                        'ios-green': '#34C759',
+                        'ios-indigo': '#5856D6',
+                        'ios-orange': '#FF9500',
+                        'ios-pink': '#FF2D92',
+                        'ios-purple': '#AF52DE',
+                        'ios-red': '#FF3B30',
+                        'ios-teal': '#5AC8FA',
+                        'ios-yellow': '#FFCC00',
+                        'ios-mint': '#00C7BE',
+                        'ios-cyan': '#32D74B',
+                        'ios-gray': '#F2F2F7',
+                        'ios-gray2': '#E5E5EA',
+                        'ios-gray3': '#D1D1D6',
+                        'ios-gray4': '#C7C7CC',
+                        'ios-gray5': '#AEAEB2',
+                        'ios-gray6': '#8E8E93',
+                        'ios-label': '#000000',
+                        'ios-secondary-label': '#3C3C43',
+                        'ios-system-background': '#FFFFFF',
+                        'ios-secondary-background': '#F2F2F7',
+                    },
+                    fontFamily: {
+                        'sf': ['-apple-system', 'BlinkMacSystemFont', 'SF Pro Display', 'SF Pro Text', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .ios-blur {
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+        }
+        
+        .ios-button {
+            transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        
+        .ios-button:hover {
+            transform: scale(1.02);
+        }
+        
+        .message-bubble {
+            animation: messageSlideIn 0.3s ease-out;
+        }
+        
+        @keyframes messageSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .tab-active {
+            color: #007AFF;
+        }
+        
+        .tab-inactive {
+            color: #8E8E93;
+        }
+        
+        .phone-frame {
+            transform: scale(0.85);
+            transform-origin: top center;
+        }
+        
+        @media (max-width: 1536px) {
+            .phone-frame {
+                transform: scale(0.75);
+            }
+        }
+        
+        @media (max-width: 1280px) {
+            .phone-frame {
+                transform: scale(0.65);
+            }
+        }
+        
+        .gradient-bg-1 {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .gradient-bg-2 {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        
+        .gradient-bg-3 {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+        
+        .gradient-bg-4 {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+        
+        .gradient-bg-5 {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+        
+        .gradient-card {
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .floating-action {
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+        }
+        
+        .pulse-ring {
+            animation: pulse-ring 2s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite;
+        }
+        
+        @keyframes pulse-ring {
+            0% {
+                transform: scale(0.8);
+                opacity: 1;
+            }
+            80%, 100% {
+                transform: scale(1.2);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body class="font-sf bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 text-black">
+    <!-- 页面标题 -->
+    <div class="text-center py-8">
+        <h1 class="text-4xl font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-blue-500 bg-clip-text text-transparent mb-4">
+            LiteChat - 活力优化版
+        </h1>
+        <p class="text-xl text-gray-600">3个Tab精简架构 + Apple活力色彩设计</p>
+    </div>
+
+    <!-- 所有页面展示 -->
+    <div class="max-w-7xl mx-auto px-4 pb-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-12 justify-items-center">
+            
+            <!-- 1. 聊天页面 (主功能) -->
+            <div class="flex flex-col items-center">
+                <h2 class="text-2xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent flex items-center gap-2">
+                    💬 聊天
+                    <span class="text-sm bg-gradient-to-r from-blue-500 to-purple-500 text-white px-3 py-1 rounded-full">主要</span>
+                </h2>
+                <div class="phone-frame">
+                    <div class="w-[393px] h-[852px] bg-gradient-to-b from-gray-800 to-black rounded-[60px] p-2 shadow-2xl relative">
+                        <div class="absolute top-6 left-1/2 transform -translate-x-1/2 w-32 h-8 bg-black rounded-full z-50"></div>
+                        
+                        <div class="w-full h-full rounded-[52px] overflow-hidden bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex flex-col">
+                            <!-- 状态栏 -->
+                            <div class="h-12 flex justify-between items-center px-6 text-black text-sm font-semibold pt-12">
+                                <span>9:41</span>
+                                <div class="flex items-center gap-1">
+                                    <div class="flex gap-1">
+                                        <div class="w-1 h-1 bg-black rounded-full"></div>
+                                        <div class="w-1 h-1 bg-black rounded-full"></div>
+                                        <div class="w-1 h-1 bg-black rounded-full"></div>
+                                        <div class="w-1 h-1 bg-gray-400 rounded-full"></div>
+                                    </div>
+                                    <div class="w-6 h-3 bg-black rounded-sm ml-1"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- 导航栏 -->
+                            <div class="px-4 py-3 bg-white/80 ios-blur border-b border-white/30">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-3">
+                                        <div class="relative">
+                                            <div class="w-10 h-10 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                                                <span class="text-white text-sm font-bold">AI</span>
+                                            </div>
+                                            <div class="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-green-400 to-emerald-400 rounded-full pulse-ring"></div>
+                                        </div>
+                                        <div>
+                                            <div class="text-lg font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">LiteChat</div>
+                                            <div class="text-xs text-green-500 flex items-center gap-1 font-medium">
+                                                <div class="w-2 h-2 bg-green-400 rounded-full"></div>
+                                                在线 · GPT-4 Turbo
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flex gap-2">
+                                        <button class="w-8 h-8 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full flex items-center justify-center ios-button">
+                                            <svg class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+                                            </svg>
+                                        </button>
+                                        <button class="w-8 h-8 bg-gradient-to-r from-pink-100 to-purple-100 rounded-full flex items-center justify-center ios-button">
+                                            <svg class="w-4 h-4 text-pink-600" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- AI功能快捷入口 -->
+                            <div class="px-4 py-3 bg-gradient-to-r from-white/60 to-white/40 ios-blur border-b border-white/20">
+                                <div class="flex gap-2 overflow-x-auto pb-1">
+                                    <button class="flex-shrink-0 bg-gradient-to-r from-orange-400 to-pink-400 text-white px-4 py-2 rounded-full text-xs font-semibold ios-button flex items-center gap-1">
+                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+                                        </svg>
+                                        生成图片
+                                    </button>
+                                    <button class="flex-shrink-0 bg-gradient-to-r from-purple-400 to-blue-400 text-white px-4 py-2 rounded-full text-xs font-semibold ios-button flex items-center gap-1">
+                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M18 3v2h-2V3H8v2H6V3H4v18h2v-2h2v2h8v-2h2v2h2V3h-2z"/>
+                                        </svg>
+                                        创作视频
+                                    </button>
+                                    <button class="flex-shrink-0 bg-gradient-to-r from-green-400 to-teal-400 text-white px-4 py-2 rounded-full text-xs font-semibold ios-button flex items-center gap-1">
+                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                                        </svg>
+                                        语音转文字
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- 消息区域 -->
+                            <div class="flex-1 px-4 py-3 space-y-4 overflow-y-auto">
+                                <!-- 系统欢迎消息 -->
+                                <div class="flex justify-center">
+                                    <div class="bg-white/60 backdrop-blur-sm px-4 py-2 rounded-full text-xs text-gray-600 border border-white/30">
+                                        今天 9:30
+                                    </div>
+                                </div>
+                                
+                                <!-- AI欢迎 -->
+                                <div class="flex justify-start message-bubble">
+                                    <div class="max-w-[280px] bg-white/80 backdrop-blur-sm px-4 py-3 rounded-2xl rounded-bl-md border border-white/30 shadow-sm">
+                                        <div class="text-base text-gray-800">👋 你好！我是LiteChat AI助手</div>
+                                        <div class="mt-2 space-y-1 text-sm text-gray-600">
+                                            <div class="flex items-center gap-2">
+                                                <span class="w-2 h-2 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full"></span>
+                                                智能对话聊天
+                                            </div>
+                                            <div class="flex items-center gap-2">
+                                                <span class="w-2 h-2 bg-gradient-to-r from-orange-400 to-pink-400 rounded-full"></span>
+                                                文字生成图片
+                                            </div>
+                                            <div class="flex items-center gap-2">
+                                                <span class="w-2 h-2 bg-gradient-to-r from-purple-400 to-blue-400 rounded-full"></span>
+                                                创作视频内容
+                                            </div>
+                                            <div class="flex items-center gap-2">
+                                                <span class="w-2 h-2 bg-gradient-to-r from-green-400 to-teal-400 rounded-full"></span>
+                                                语音识别转文字
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- 用户消息 -->
+                                <div class="flex justify-end message-bubble">
+                                    <div class="max-w-[280px] bg-gradient-to-r from-blue-500 to-purple-500 text-white px-4 py-3 rounded-2xl rounded-br-md shadow-lg">
+                                        <div class="text-base">帮我生成一张春天樱花盛开的图片</div>
+                                    </div>
+                                </div>
+                                
+                                <!-- AI回复 -->
+                                <div class="flex justify-start message-bubble">
+                                    <div class="max-w-[280px] bg-white/80 backdrop-blur-sm px-4 py-3 rounded-2xl rounded-bl-md border border-white/30 shadow-sm">
+                                        <div class="text-base text-gray-800">🌸 好的！我来为您生成一张美丽的春天樱花图片</div>
+                                        <div class="mt-3 w-full h-32 bg-gradient-to-br from-pink-200 via-white to-green-200 rounded-lg flex items-center justify-center">
+                                            <div class="text-center">
+                                                <div class="w-8 h-8 bg-gradient-to-r from-pink-400 to-purple-400 rounded-full mx-auto mb-2 animate-spin">
+                                                    <div class="w-2 h-2 bg-white rounded-full mt-1 ml-1"></div>
+                                                </div>
+                                                <div class="text-xs text-gray-600">AI正在创作中...</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- 生成的图片 -->
+                                <div class="flex justify-start message-bubble">
+                                    <div class="w-64 h-48 rounded-2xl overflow-hidden shadow-lg border-2 border-white/50">
+                                        <img src="https://images.unsplash.com/photo-1522383225653-ed111181a951?w=500&h=400&fit=crop&auto=format" 
+                                             alt="AI生成的樱花" 
+                                             class="w-full h-full object-cover">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 输入区域 -->
+                            <div class="px-4 py-3 bg-white/80 ios-blur border-t border-white/30">
+                                <div class="flex items-end gap-2">
+                                    <button class="w-8 h-8 bg-gradient-to-r from-gray-100 to-gray-200 rounded-full flex items-center justify-center ios-button">
+                                        <svg class="w-4 h-4 text-gray-600" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M19 7v4H5.83l3.58-3.59L8 6l-6 6 6 6 1.41-1.41L5.83 13H21V7z"/>
+                                        </svg>
+                                    </button>
+                                    <div class="flex-1 bg-white/60 backdrop-blur-sm rounded-full px-4 py-2 min-h-[36px] flex items-center border border-white/40">
+                                        <input type="text" placeholder="输入消息..." class="flex-1 bg-transparent border-none outline-none text-base placeholder-gray-500">
+                                    </div>
+                                    <button class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center ios-button shadow-lg">
+                                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- TabBar -->
+                            <div class="bg-white/90 ios-blur border-t border-white/40 px-4 py-2">
+                                <div class="flex justify-around items-center">
+                                    <div class="flex flex-col items-center py-1 tab-active">
+                                        <div class="w-6 h-6 mb-1 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
+                                            <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4V4c0-1.1-.9-2-2-2z"/>
+                                            </svg>
+                                        </div>
+                                        <span class="text-xs font-medium">聊天</span>
+                                    </div>
+                                    <div class="flex flex-col items-center py-1 tab-inactive">
+                                        <svg class="w-6 h-6 mb-1" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                        </svg>
+                                        <span class="text-xs">创作</span>
+                                    </div>
+                                    <div class="flex flex-col items-center py-1 tab-inactive">
+                                        <svg class="w-6 h-6 mb-1" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                                        </svg>
+                                        <span class="text-xs">我的</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. 创作页面 (集合功能) -->
+            <div class="flex flex-col items-center">
+                <h2 class="text-2xl font-bold mb-4 bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 bg-clip-text text-transparent">⭐ 创作中心</h2>
+                <div class="phone-frame">
+                    <div class="w-[393px] h-[852px] bg-gradient-to-b from-gray-800 to-black rounded-[60px] p-2 shadow-2xl relative">
+                        <div class="absolute top-6 left-1/2 transform -translate-x-1/2 w-32 h-8 bg-black rounded-full z-50"></div>
+                        
+                        <div class="w-full h-full rounded-[52px] overflow-hidden bg-gradient-to-br from-orange-50 via-pink-50 to-purple-50 flex flex-col">
+                            <!-- 状态栏 -->
+                            <div class="h-12 flex justify-between items-center px-6 text-black text-sm font-semibold pt-12">
+                                <span>9:41</span>
+                                <div class="flex items-center gap-1">
+                                    <div class="flex gap-1">
+                                        <div class="w-1 h-1 bg-black rounded-full"></div>
+                                        <div class="w-1 h-1 bg-black rounded-full"></div>
+                                        <div class="w-1 h-1 bg-black rounded-full"></div>
+                                        <div class="w-1 h-1 bg-gray-400 rounded-full"></div>
+                                    </div>
+                                    <div class="w-6 h-3 bg-black rounded-sm ml-1"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- 导航栏 -->
+                            <div class="px-4 py-3 bg-white/80 ios-blur border-b border-white/30">
+                                <div class="flex items-center justify-between">
+                                    <h1 class="text-xl font-bold bg-gradient-to-r from-orange-600 to-purple-600 bg-clip-text text-transparent">AI创作中心</h1>
+                                    <div class="flex gap-2">
+                                        <button class="w-8 h-8 bg-gradient-to-r from-orange-100 to-pink-100 rounded-full flex items-center justify-center ios-button">
+                                            <svg class="w-4 h-4 text-orange-600" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 2 2h16c1.1 0 2-.9 2-2V8l-6-6z"/>
+                                            </svg>
+                                        </button>
+                                        <button class="w-8 h-8 bg-gradient-to-r from-pink-100 to-purple-100 rounded-full flex items-center justify-center ios-button">
+                                            <svg class="w-4 h-4 text-pink-600" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 内容区域 -->
+                            <div class="flex-1 px-4 py-4 space-y-4 overflow-y-auto">
+                                <!-- 主要创作功能 -->
+                                <div class="grid grid-cols-2 gap-4">
+                                    <!-- 图片生成 -->
+                                    <div class="gradient-card rounded-2xl p-4 text-center">
+                                        <div class="w-16 h-16 bg-gradient-to-br from-orange-400 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-3 floating-action">
+                                            <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+                                            </svg>
+                                        </div>
+                                        <div class="text-sm font-bold text-gray-800 mb-1">AI图片生成</div>
+                                        <div class="text-xs text-gray-600 mb-3">文字描述生成精美图片</div>
+                                        <button class="w-full bg-gradient-to-r from-orange-400 to-pink-500 text-white py-2 rounded-xl text-xs font-semibold ios-button">
+                                            开始创作
+                                        </button>
+                                    </div>
+                                    
+                                    <!-- 视频生成 -->
+                                    <div class="gradient-card rounded-2xl p-4 text-center">
+                                        <div class="w-16 h-16 bg-gradient-to-br from-purple-400 to-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-3 floating-action">
+                                            <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M18 3v2h-2V3H8v2H6V3H4v18h2v-2h2v2h8v-2h2v2h2V3h-2z"/>
+                                            </svg>
+                                        </div>
+                                        <div class="text-sm font-bold text-gray-800 mb-1">AI视频创作</div>
+                                        <div class="text-xs text-gray-600 mb-3">创意剧本生成短视频</div>
+                                        <button class="w-full bg-gradient-to-r from-purple-400 to-blue-500 text-white py-2 rounded-xl text-xs font-semibold ios-button">
+                                            开始创作
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <!-- 辅助功能 -->
+                                <div class="gradient-card rounded-2xl p-4">
+                                    <div class="text-sm font-bold text-gray-800 mb-3">🛠️ 实用工具</div>
+                                    <div class="space-y-3">
+                                        <div class="flex items-center gap-3 p-3 bg-white/40 rounded-xl">
+                                            <div class="w-10 h-10 bg-gradient-to-r from-green-400 to-teal-400 rounded-xl flex items-center justify-center">
+                                                <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                                    <path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                                                </svg>
+                                            </div>
+                                            <div class="flex-1">
+                                                <div class="text-sm font-semibold text-gray-800">语音转文字</div>
+                                                <div class="text-xs text-gray-600">多语言实时转录</div>
+                                            </div>
+                                            <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
+                                            </svg>
+                                        </div>
+                                        
+                                        <div class="flex items-center gap-3 p-3 bg-white/40 rounded-xl">
+                                            <div class="w-10 h-10 bg-gradient-to-r from-blue-400 to-cyan-400 rounded-xl flex items-center justify-center">
+                                                <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+                                                </svg>
+                                            </div>
+                                            <div class="flex-1">
+                                                <div class="text-sm font-semibold text-gray-800">文本翻译</div>
+                                                <div class="text-xs text-gray-600">智能多语言翻译</div>
+                                            </div>
+                                            <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
+                                            </svg>
+                                        </div>
+                                        
+                                        <div class="flex items-center gap-3 p-3 bg-white/40 rounded-xl">
+                                            <div class="w-10 h-10 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-xl flex items-center justify-center">
+                                                <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                                    <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 2 2h16c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
+                                                </svg>
+                                            </div>
+                                            <div class="flex-1">
+                                                <div class="text-sm font-semibold text-gray-800">文档总结</div>
+                                                <div class="text-xs text-gray-600">智能提取关键信息</div>
+                                            </div>
+                                            <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- 最近作品 -->
+                                <div class="gradient-card rounded-2xl p-4">
+                                    <div class="text-sm font-bold text-gray-800 mb-3">🎨 最近作品</div>
+                                    <div class="grid grid-cols-3 gap-2">
+                                        <div class="aspect-square rounded-lg overflow-hidden">
+                                            <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=200&h=200&fit=crop&auto=format" 
+                                                 alt="作品1" 
+                                                 class="w-full h-full object-cover">
+                                        </div>
+                                        <div class="aspect-square rounded-lg overflow-hidden">
+                                            <img src="https://images.unsplash.com/photo-1522383225653-ed111181a951?w=200&h=200&fit=crop&auto=format" 
+                                                 alt="作品2" 
+                                                 class="w-full h-full object-cover">
+                                        </div>
+                                        <div class="aspect-square rounded-lg overflow-hidden bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
+                                            <svg class="w-6 h-6 text-gray-500" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- TabBar -->
+                            <div class="bg-white/90 ios-blur border-t border-white/40 px-4 py-2">
+                                <div class="flex justify-around items-center">
+                                    <div class="flex flex-col items-center py-1 tab-inactive">
+                                        <svg class="w-6 h-6 mb-1" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4V4c0-1.1-.9-2-2-2z"/>
+                                        </svg>
+                                        <span class="text-xs">聊天</span>
+                                    </div>
+                                    <div class="flex flex-col items-center py-1 tab-active">
+                                        <div class="w-6 h-6 mb-1 bg-gradient-to-r from-orange-500 to-purple-500 rounded-lg flex items-center justify-center">
+                                            <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                            </svg>
+                                        </div>
+                                        <span class="text-xs font-medium">创作</span>
+                                    </div>
+                                    <div class="flex flex-col items-center py-1 tab-inactive">
+                                        <svg class="w-6 h-6 mb-1" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                                        </svg>
+                                        <span class="text-xs">我的</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. 我的页面 -->
+            <div class="flex flex-col items-center">
+                <h2 class="text-2xl font-bold mb-4 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">👤 我的</h2>
+                <div class="phone-frame">
+                    <div class="w-[393px] h-[852px] bg-gradient-to-b from-gray-800 to-black rounded-[60px] p-2 shadow-2xl relative">
+                        <div class="absolute top-6 left-1/2 transform -translate-x-1/2 w-32 h-8 bg-black rounded-full z-50"></div>
+                        
+                        <div class="w-full h-full rounded-[52px] overflow-hidden bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 flex flex-col">
+                            <!-- 状态栏 -->
+                            <div class="h-12 flex justify-between items-center px-6 text-black text-sm font-semibold pt-12">
+                                <span>9:41</span>
+                                <div class="flex items-center gap-1">
+                                    <div class="flex gap-1">
+                                        <div class="w-1 h-1 bg-black rounded-full"></div>
+                                        <div class="w-1 h-1 bg-black rounded-full"></div>
+                                        <div class="w-1 h-1 bg-black rounded-full"></div>
+                                        <div class="w-1 h-1 bg-gray-400 rounded-full"></div>
+                                    </div>
+                                    <div class="w-6 h-3 bg-black rounded-sm ml-1"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- 导航栏 -->
+                            <div class="px-4 py-3 bg-white/80 ios-blur border-b border-white/30">
+                                <div class="flex items-center justify-between">
+                                    <h1 class="text-xl font-bold bg-gradient-to-r from-indigo-600 to-pink-600 bg-clip-text text-transparent">我的</h1>
+                                    <div class="flex gap-2">
+                                        <button class="w-8 h-8 bg-gradient-to-r from-indigo-100 to-purple-100 rounded-full flex items-center justify-center ios-button">
+                                            <svg class="w-4 h-4 text-indigo-600" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                                            </svg>
+                                        </button>
+                                        <button class="w-8 h-8 bg-gradient-to-r from-purple-100 to-pink-100 rounded-full flex items-center justify-center ios-button">
+                                            <svg class="w-4 h-4 text-purple-600" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 内容区域 -->
+                            <div class="flex-1 px-4 py-4 space-y-4 overflow-y-auto">
+                                <!-- 用户信息卡片 -->
+                                <div class="gradient-card rounded-2xl p-4">
+                                    <div class="flex items-center gap-4">
+                                        <div class="relative">
+                                            <div class="w-16 h-16 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-2xl flex items-center justify-center">
+                                                <span class="text-white text-xl font-bold">L</span>
+                                            </div>
+                                            <div class="absolute -bottom-1 -right-1 w-6 h-6 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full flex items-center justify-center">
+                                                <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                                </svg>
+                                            </div>
+                                        </div>
+                                        <div class="flex-1">
+                                            <div class="text-lg font-bold text-gray-800">LiteChat用户</div>
+                                            <div class="text-sm text-gray-600">user@icloud.com</div>
+                                            <div class="flex items-center gap-2 mt-2">
+                                                <div class="bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs px-3 py-1 rounded-full font-bold">
+                                                    ⭐ Pro会员
+                                                </div>
+                                                <div class="text-xs text-gray-500">2024.12.31到期</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- 使用统计 -->
+                                <div class="gradient-card rounded-2xl p-4">
+                                    <div class="text-sm font-bold text-gray-800 mb-3">📊 本月创作统计</div>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div class="text-center p-3 bg-gradient-to-br from-blue-100 to-purple-100 rounded-xl">
+                                            <div class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">1,234</div>
+                                            <div class="text-xs text-gray-600 mt-1">对话次数</div>
+                                        </div>
+                                        <div class="text-center p-3 bg-gradient-to-br from-orange-100 to-pink-100 rounded-xl">
+                                            <div class="text-2xl font-bold bg-gradient-to-r from-orange-600 to-pink-600 bg-clip-text text-transparent">56</div>
+                                            <div class="text-xs text-gray-600 mt-1">图片生成</div>
+                                        </div>
+                                        <div class="text-center p-3 bg-gradient-to-br from-purple-100 to-blue-100 rounded-xl">
+                                            <div class="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">23</div>
+                                            <div class="text-xs text-gray-600 mt-1">视频创作</div>
+                                        </div>
+                                        <div class="text-center p-3 bg-gradient-to-br from-green-100 to-teal-100 rounded-xl">
+                                            <div class="text-2xl font-bold bg-gradient-to-r from-green-600 to-teal-600 bg-clip-text text-transparent">89</div>
+                                            <div class="text-xs text-gray-600 mt-1">语音转录</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- 功能菜单 -->
+                                <div class="gradient-card rounded-2xl overflow-hidden">
+                                    <div class="flex items-center justify-between p-4 border-b border-white/30">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-10 h-10 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-xl flex items-center justify-center">
+                                                <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                                </svg>
+                                            </div>
+                                            <span class="text-base font-semibold text-gray-800">会员中心</span>
+                                        </div>
+                                        <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
+                                        </svg>
+                                    </div>
+                                    
+                                    <div class="flex items-center justify-between p-4 border-b border-white/30">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-10 h-10 bg-gradient-to-r from-blue-400 to-purple-400 rounded-xl flex items-center justify-center">
+                                                <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                                    <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 2 2h16c1.1 0 2-.9 2-2V8l-6-6z"/>
+                                                </svg>
+                                            </div>
+                                            <span class="text-base font-semibold text-gray-800">我的作品</span>
+                                        </div>
+                                        <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
+                                        </svg>
+                                    </div>
+                                    
+                                    <div class="flex items-center justify-between p-4 border-b border-white/30">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-10 h-10 bg-gradient-to-r from-green-400 to-teal-400 rounded-xl flex items-center justify-center">
+                                                <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                                    <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
+                                                </svg>
+                                            </div>
+                                            <span class="text-base font-semibold text-gray-800">隐私设置</span>
+                                        </div>
+                                        <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
+                                        </svg>
+                                    </div>
+                                    
+                                    <div class="flex items-center justify-between p-4">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-10 h-10 bg-gradient-to-r from-purple-400 to-pink-400 rounded-xl flex items-center justify-center">
+                                                <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                                    <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
+                                                </svg>
+                                            </div>
+                                            <span class="text-base font-semibold text-gray-800">设置</span>
+                                        </div>
+                                        <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- TabBar -->
+                            <div class="bg-white/90 ios-blur border-t border-white/40 px-4 py-2">
+                                <div class="flex justify-around items-center">
+                                    <div class="flex flex-col items-center py-1 tab-inactive">
+                                        <svg class="w-6 h-6 mb-1" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4V4c0-1.1-.9-2-2-2z"/>
+                                        </svg>
+                                        <span class="text-xs">聊天</span>
+                                    </div>
+                                    <div class="flex flex-col items-center py-1 tab-inactive">
+                                        <svg class="w-6 h-6 mb-1" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                        </svg>
+                                        <span class="text-xs">创作</span>
+                                    </div>
+                                    <div class="flex flex-col items-center py-1 tab-active">
+                                        <div class="w-6 h-6 mb-1 bg-gradient-to-r from-indigo-500 to-pink-500 rounded-lg flex items-center justify-center">
+                                            <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                                            </svg>
+                                        </div>
+                                        <span class="text-xs font-medium">我的</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 优化说明 -->
+    <div class="max-w-6xl mx-auto px-4 py-8">
+        <div class="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-xl border border-white/50">
+            <h3 class="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-purple-600 via-pink-500 to-blue-500 bg-clip-text text-transparent">
+                ✨ 优化设计亮点
+            </h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                <div class="space-y-4">
+                    <h4 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+                        🎨 视觉设计优化
+                    </h4>
+                    <div class="space-y-3">
+                        <div class="flex items-start gap-3">
+                            <div class="w-6 h-6 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="font-semibold text-gray-800">Apple活力色彩</div>
+                                <div class="text-sm text-gray-600">丰富的渐变色彩，充满活力和现代感</div>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <div class="w-6 h-6 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="font-semibold text-gray-800">毛玻璃背景</div>
+                                <div class="text-sm text-gray-600">渐变背景配合毛玻璃效果，层次丰富</div>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <div class="w-6 h-6 bg-gradient-to-r from-orange-400 to-pink-400 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="font-semibold text-gray-800">动态视觉元素</div>
+                                <div class="text-sm text-gray-600">浮动动画、脉冲效果增强交互感</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="space-y-4">
+                    <h4 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+                        🏗️ 架构优化
+                    </h4>
+                    <div class="space-y-3">
+                        <div class="flex items-start gap-3">
+                            <div class="w-6 h-6 bg-gradient-to-r from-green-400 to-teal-400 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="font-semibold text-gray-800">3个Tab精简架构</div>
+                                <div class="text-sm text-gray-600">聊天主功能 + 创作中心 + 个人中心</div>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <div class="w-6 h-6 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="font-semibold text-gray-800">聊天页集成快捷入口</div>
+                                <div class="text-sm text-gray-600">主页面直接访问所有AI功能</div>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <div class="w-6 h-6 bg-gradient-to-r from-indigo-400 to-purple-400 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="font-semibold text-gray-800">创作中心整合</div>
+                                <div class="text-sm text-gray-600">图片、视频、工具功能统一管理</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-gradient-to-r from-purple-100 via-pink-100 to-blue-100 rounded-2xl p-6">
+                <h4 class="text-xl font-bold mb-4 text-gray-800 text-center">🚀 新架构优势对比</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white/60 backdrop-blur-sm rounded-xl p-4">
+                        <h5 class="font-bold text-red-600 mb-3">❌ 之前5个Tab问题</h5>
+                        <ul class="space-y-2 text-sm text-gray-700">
+                            <li>• Tab过多，用户选择困难</li>
+                            <li>• 功能分散，使用路径长</li>
+                            <li>• 界面拥挤，视觉负担重</li>
+                            <li>• 颜色单调，缺乏活力</li>
+                        </ul>
+                    </div>
+                    <div class="bg-white/60 backdrop-blur-sm rounded-xl p-4">
+                        <h5 class="font-bold text-green-600 mb-3">✅ 现在3个Tab优势</h5>
+                        <ul class="space-y-2 text-sm text-gray-700">
+                            <li>• 结构清晰，易于理解</li>
+                            <li>• 聊天主页集成快捷功能</li>
+                            <li>• 创作中心统一管理工具</li>
+                            <li>• 活力渐变，视觉丰富</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 简单的交互效果
+        document.addEventListener('DOMContentLoaded', function() {
+            // 浮动动画
+            const floatingElements = document.querySelectorAll('.floating-action');
+            floatingElements.forEach((element, index) => {
+                element.style.animationDelay = (index * 0.5) + 's';
+            });
+            
+            // 脉冲动画
+            const pulseElements = document.querySelectorAll('.pulse-ring');
+            pulseElements.forEach((element, index) => {
+                element.style.animationDelay = (index * 0.3) + 's';
+            });
+        });
+    </script>
+</body>
+</html>
