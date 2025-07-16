@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Vault - AI记忆笔记本 完整页面展示</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        warm: {
+                            50: '#fef7ed',
+                            100: '#fef3e2',
+                            200: '#fce4c4',
+                            300: '#f9d09b',
+                            400: '#f5b76f',
+                            500: '#f19a3e',
+                            600: '#e67e22',
+                            700: '#c0631a',
+                            800: '#9a4f1b',
+                            900: '#7c421a',
+                        },
+                        coral: {
+                            50: '#fef5f3',
+                            100: '#fde8e4',
+                            200: '#fbd5cd',
+                            300: '#f7b8aa',
+                            400: '#f19176',
+                            500: '#e67e22',
+                            600: '#d35400',
+                            700: '#b7472a',
+                            800: '#973c28',
+                            900: '#7d3428',
+                        },
+                        sunset: {
+                            50: '#fff7ed',
+                            100: '#ffedd5',
+                            200: '#fed7aa',
+                            300: '#fdba74',
+                            400: '#fb923c',
+                            500: '#f97316',
+                            600: '#ea580c',
+                            700: '#c2410c',
+                            800: '#9a3412',
+                            900: '#7c2d12',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .phone-frame {
+            width: 280px;
+            height: 560px;
+            border-radius: 25px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            position: relative;
+        }
+        .glass-warm {
+            backdrop-filter: blur(20px);
+            background: rgba(251, 146, 60, 0.15);
+            border: 1px solid rgba(251, 146, 60, 0.2);
+        }
+        .gradient-warm {
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 50%, #dc2626 100%);
+        }
+        .gradient-sunset {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
+        }
+        .wave-bar {
+            animation: wave 1s ease-in-out infinite alternate;
+        }
+        .wave-bar:nth-child(2) { animation-delay: 0.1s; }
+        .wave-bar:nth-child(3) { animation-delay: 0.2s; }
+        .wave-bar:nth-child(4) { animation-delay: 0.3s; }
+        .wave-bar:nth-child(5) { animation-delay: 0.4s; }
+        @keyframes wave {
+            0%, 100% { height: 12px; }
+            50% { height: 24px; }
+        }
+        .toggle-switch {
+            width: 40px;
+            height: 20px;
+            border-radius: 10px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .toggle-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 8px;
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.3s ease;
+        }
+        .toggle-switch.active .toggle-dot {
+            transform: translateX(20px);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-warm-50 to-coral-50 min-h-screen p-8">
+    
+    <!-- 标题 -->
+    <div class="text-center mb-12">
+        <h1 class="text-5xl font-bold text-warm-800 mb-4">Memory Vault</h1>
+        <p class="text-2xl text-warm-600 mb-2">AI记忆笔记本 - 完整页面设计展示</p>
+        <p class="text-lg text-warm-500">九宫格布局 · 暖色调设计 · 完整功能页面</p>
+    </div>
+
+    <!-- 九宫格页面展示 -->
+    <div class="max-w-7xl mx-auto grid grid-cols-3 gap-8 justify-items-center">
+        
+        <!-- 1. 欢迎页面 -->
+        <div class="text-center">
+            <h3 class="text-lg font-bold text-warm-800 mb-4">1. 欢迎页面</h3>
+            <div class="phone-frame gradient-warm">
+                <div class="h-full flex flex-col justify-center items-center p-6 text-center text-white relative">
+                    <!-- 背景装饰 -->
+                    <div class="absolute top-16 right-8 w-20 h-20 bg-white/10 rounded-full blur-xl"></div>
+                    <div class="absolute bottom-32 left-8 w-16 h-16 bg-yellow-300/20 rounded-full blur-lg"></div>
+                    
+                    <div class="relative z-10">
+                        <div class="w-24 h-24 glass-warm rounded-3xl flex items-center justify-center mb-8 shadow-2xl">
+                            <svg class="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                            </svg>
+                        </div>
+                        
+                        <h1 class="text-3xl font-bold mb-3">Memory Vault</h1>
+                        <p class="text-lg opacity-90 mb-8 leading-relaxed">
+                            用AI守护每一个<br>珍贵的记忆片段
+                        </p>
+                        
+                        <button class="glass-warm border-2 border-white/30 text-white px-6 py-3 rounded-full font-semibold">
+                            开始记录
+                        </button>
+                        
+                        <div class="absolute bottom-6 flex space-x-2">
+                            <div class="w-2 h-2 bg-white rounded-full"></div>
+                            <div class="w-2 h-2 bg-white/50 rounded-full"></div>
+                            <div class="w-2 h-2 bg-white/50 rounded-full"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. 主页面 -->
+        <div class="text-center">
+            <h3 class="text-lg font-bold text-warm-800 mb-4">2. 主页面</h3>
+            <div class="phone-frame bg-gradient-to-br from-warm-100 to-coral-100">
+                <div class="h-full">
+                    <!-- 头部 -->
+                    <div class="glass-warm pt-12 pb-4 px-4 text-center border-b border-warm-200/30">
+                        <h1 class="text-xl font-bold text-warm-800 mb-1">Memory Vault</h1>
+                        <p class="text-warm-600 text-sm">记录此刻的感受和想法</p>
+                    </div>
+                    
+                    <div class="p-4 space-y-6">
+                        <!-- 录制区域 -->
+                        <div class="text-center space-y-4">
+                            <div class="w-20 h-20 rounded-full gradient-warm shadow-xl flex items-center justify-center mx-auto">
+                                <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="8"/>
+                                </svg>
+                            </div>
+                            <p class="text-warm-700 font-medium">轻触开始录制</p>
+                            
+                            <!-- 波形显示 -->
+                            <div class="flex justify-center space-x-1">
+                                <div class="wave-bar w-1 bg-warm-500 rounded-full"></div>
+                                <div class="wave-bar w-1 bg-warm-500 rounded-full"></div>
+                                <div class="wave-bar w-1 bg-warm-500 rounded-full"></div>
+                                <div class="wave-bar w-1 bg-warm-500 rounded-full"></div>
+                                <div class="wave-bar w-1 bg-warm-500 rounded-full"></div>
+                            </div>
+                        </div>
+
+                        <!-- 快速操作 -->
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="glass-warm p-4 rounded-xl text-center">
+                                <svg class="w-6 h-6 text-warm-700 mx-auto mb-2" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                                </svg>
+                                <p class="text-warm-800 text-xs font-medium">搜索</p>
+                            </div>
+                            <div class="glass-warm p-4 rounded-xl text-center">
+                                <svg class="w-6 h-6 text-warm-700 mx-auto mb-2" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zM12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>
+                                </svg>
+                                <p class="text-warm-800 text-xs font-medium">时间线</p>
+                            </div>
+                        </div>
+
+                        <!-- 最近记录 -->
+                        <div class="space-y-3">
+                            <h3 class="text-warm-800 font-semibold">最近记录</h3>
+                            <div class="glass-warm rounded-xl p-3">
+                                <div class="flex items-start space-x-3">
+                                    <img src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=40&h=40&fit=crop" 
+                                         alt="咖啡" class="w-8 h-8 rounded-lg object-cover">
+                                    <div class="flex-1">
+                                        <div class="flex justify-between items-center mb-1">
+                                            <span class="text-xs text-warm-600">今天 14:32</span>
+                                            <div class="w-2 h-2 bg-yellow-400 rounded-full"></div>
+                                        </div>
+                                        <p class="text-warm-800 text-xs mb-2">刚才路过咖啡店，闻到了熟悉的咖啡香味...</p>
+                                        <div class="flex gap-1">
+                                            <span class="bg-warm-200 text-warm-800 px-2 py-0.5 rounded-full text-xs">咖啡</span>
+                                            <span class="bg-coral-200 text-coral-800 px-2 py-0.5 rounded-full text-xs">大学</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 底部导航 -->
+                        <div class="absolute bottom-0 left-0 right-0 glass-warm p-3">
+                            <div class="flex justify-around">
+                                <div class="text-center">
+                                    <svg class="w-4 h-4 text-warm-700 mx-auto mb-1" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+                                    </svg>
+                                    <span class="text-warm-700 text-xs">首页</span>
+                                </div>
+                                <div class="text-center">
+                                    <svg class="w-4 h-4 text-warm-500 mx-auto mb-1" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                                    </svg>
+                                    <span class="text-warm-500 text-xs">设置</span>
+                                </div>
+                                <div class="text-center">
+                                    <svg class="w-4 h-4 text-warm-500 mx-auto mb-1" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                                    </svg>
+                                    <span class="text-warm-500 text-xs">统计</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. 搜索页面 -->
+        <div class="text-center">
+            <h3 class="text-lg font-bold text-warm-800 mb-4">3. 搜索页面</h3>
+            <div class="phone-frame bg-gradient-to-br from-warm-100 to-coral-100">
+                <div class="h-full">
+                    <!-- 头部 -->
+                    <div class="glass-warm pt-12 pb-4 px-4 border-b border-warm-200/30">
+                        <div class="flex items-center mb-2">
+                            <svg class="w-5 h-5 text-warm-700 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                            </svg>
+                            <h2 class="text-xl font-bold text-warm-800">智能搜索</h2>
+                        </div>
+                        <p class="text-warm-600 text-sm">描述你想找的记忆</p>
+                    </div>
+
+                    <div class="p-4 space-y-4">
+                        <!-- 搜索框 -->
+                        <div class="glass-warm rounded-xl p-3">
+                            <div class="flex items-center space-x-2">
+                                <svg class="w-4 h-4 text-warm-600" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                                </svg>
+                                <input type="text" placeholder="例如：关于咖啡的回忆..." class="flex-1 outline-none text-warm-800 placeholder-warm-500 bg-transparent text-sm">
+                            </div>
+                        </div>
+
+                        <!-- 热门搜索 -->
+                        <div class="space-y-3">
+                            <h3 class="text-warm-800 font-semibold text-sm">热门搜索</h3>
+                            <div class="flex flex-wrap gap-2">
+                                <span class="bg-warm-200 text-warm-800 px-3 py-1 rounded-full text-xs">咖啡</span>
+                                <span class="bg-coral-200 text-coral-800 px-3 py-1 rounded-full text-xs">音乐</span>
+                                <span class="bg-sunset-200 text-sunset-800 px-3 py-1 rounded-full text-xs">朋友</span>
+                                <span class="bg-warm-200 text-warm-800 px-3 py-1 rounded-full text-xs">家人</span>
+                            </div>
+                        </div>
+
+                        <!-- 搜索结果 -->
+                        <div class="space-y-3">
+                            <h3 class="text-warm-800 font-semibold text-sm">搜索结果</h3>
+                            <div class="glass-warm rounded-xl p-3">
+                                <div class="flex items-start space-x-3">
+                                    <img src="https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=40&h=40&fit=crop" 
+                                         alt="星巴克" class="w-8 h-8 rounded-lg object-cover">
+                                    <div class="flex-1">
+                                        <div class="flex justify-between items-center mb-1">
+                                            <span class="text-xs text-warm-600">3天前 10:15</span>
+                                            <div class="w-2 h-2 bg-green-400 rounded-full"></div>
+                                        </div>
+                                        <p class="text-warm-800 text-xs mb-2">在星巴克工作，点了一杯拿铁...</p>
+                                        <div class="flex gap-1">
+                                            <span class="bg-warm-200 text-warm-800 px-2 py-0.5 rounded-full text-xs">咖啡</span>
+                                            <span class="bg-coral-200 text-coral-800 px-2 py-0.5 rounded-full text-xs">约会</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- AI提示 -->
+                        <div class="gradient-sunset rounded-xl p-4 text-white">
+                            <div class="flex items-center space-x-2 mb-2">
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                </svg>
+                                <h4 class="font-semibold text-sm">AI搜索提示</h4>
+                            </div>
+                            <p class="text-white/90 text-xs leading-relaxed">
+                                试试用感受来搜索，比如"温暖的回忆"、"让我难过的事情"
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. 时间线页面 -->
+        <div class="text-center">
+            <h3 class="text-lg font-bold text-warm-800 mb-4">4. 时间线页面</h3>
+            <div class="phone-frame bg-gradient-to-br from-warm-100 to-coral-100">
+                <div class="h-full">
+                    <!-- 头部 -->
+                    <div class="glass-warm pt-12 pb-4 px-4 border-b border-warm-200/30">
+                        <div class="flex items-center mb-2">
+                            <svg class="w-5 h-5 text-warm-700 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                            </svg>
+                            <h2 class="text-xl font-bold text-warm-800">记忆时间线</h2>
+                        </div>
+                        <p class="text-warm-600 text-sm">按时间浏览你的记忆</p>
+                    </div>
+                    
+                    <div class="p-4 space-y-4">
+                        <!-- 筛选器 -->
+                        <div class="flex space-x-2 overflow-x-auto pb-1">
+                            <button class="bg-warm-500 text-white px-3 py-1 rounded-full text-xs whitespace-nowrap">全部</button>
+                            <button class="glass-warm text-warm-700 px-3 py-1 rounded-full text-xs whitespace-nowrap">今天</button>
+                            <button class="glass-warm text-warm-700 px-3 py-1 rounded-full text-xs whitespace-nowrap">本周</button>
+                            <button class="glass-warm text-warm-700 px-3 py-1 rounded-full text-xs whitespace-nowrap">本月</button>
+                        </div>
+
+                        <!-- 时间线内容 -->
+                        <div class="space-y-4">
+                            <div class="relative">
+                                <div class="absolute left-4 top-6 bottom-0 w-0.5 bg-warm-300"></div>
+                                
+                                <div class="flex items-center space-x-3 mb-3">
+                                    <div class="w-2 h-2 bg-warm-500 rounded-full relative z-10"></div>
+                                    <h3 class="text-warm-800 font-semibold text-sm">今天</h3>
+                                </div>
+                                
+                                <div class="ml-6 space-y-3">
+                                    <div class="glass-warm rounded-xl p-3">
+                                        <div class="flex items-start space-x-3">
+                                            <img src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=40&h=40&fit=crop" 
+                                                 alt="咖啡" class="w-8 h-8 rounded-lg object-cover">
+                                            <div class="flex-1">
+                                                <div class="flex justify-between items-center mb-1">
+                                                    <span class="text-xs text-warm-600">14:32</span>
+                                                    <div class="w-2 h-2 bg-yellow-400 rounded-full"></div>
+                                                </div>
+                                                <p class="text-warm-800 text-xs mb-2">刚才路过咖啡店，闻到了熟悉的咖啡香味...</p>
+                                                <div class="flex gap-1">
+                                                    <span class="bg-warm-200 text-warm-800 px-2 py-0.5 rounded-full text-xs">咖啡</span>
+                                                    <span class="bg-coral-200 text-coral-800 px-2 py-0.5 rounded-full text-xs">大学</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="relative">
+                                <div class="absolute left-4 top-6 bottom-0 w-0.5 bg-warm-300"></div>
+                                
+                                <div class="flex items-center space-x-3 mb-3">
+                                    <div class="w-2 h-2 bg-coral-500 rounded-full relative z-10"></div>
+                                    <h3 class="text-warm-800 font-semibold text-sm">昨天</h3>
+                                </div>
+                                
+                                <div class="ml-6 space-y-3">
+                                    <div class="glass-warm rounded-xl p-3">
+                                        <div class="flex items-start space-x-3">
+                                            <img src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=40&h=40&fit=crop" 
+                                                 alt="音乐" class="w-8 h-8 rounded-lg object-cover">
+                                            <div class="flex-1">
+                                                <div class="flex justify-between items-center mb-1">
+                                                    <span class="text-xs text-warm-600">19:45</span>
+                                                    <div class="w-2 h-2 bg-red-400 rounded-full"></div>
+                                                </div>
+                                                <p class="text-warm-800 text-xs mb-2">听到了一首老歌，是妈妈以前经常哼的...</p>
+                                                <div class="flex gap-1">
+                                                    <span class="bg-warm-200 text-warm-800 px-2 py-0.5 rounded-full text-xs">音乐</span>
+                                                    <span class="bg-coral-200 text-coral-800 px-2 py-0.5 rounded-full text-xs">母亲</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. 记忆详情页面 -->
+        <div class="text-center">
+            <h3 class="text-lg font-bold text-warm-800 mb-4">5. 记忆详情页面</h3>
+            <div class="phone-frame bg-gradient-to-br from-warm-100 to-coral-100">
+                <div class="h-full">
+                    <!-- 头部 -->
+                    <div class="glass-warm pt-12 pb-4 px-4 border-b border-warm-200/30">
+                        <div class="flex items-center">
+                            <svg class="w-5 h-5 text-warm-700 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                            </svg>
+                            <h2 class="text-xl font-bold text-warm-800">记忆详情</h2>
+                        </div>
+                    </div>
+
+                    <div class="p-4 space-y-4">
+                        <!-- 图片 -->
+                        <div class="glass-warm rounded-xl p-4">
+                            <img src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=240&h=160&fit=crop" 
+                                 alt="咖啡记忆" class="w-full h-32 object-cover rounded-xl mb-3">
+                            
+                            <div class="flex justify-between items-center mb-3">
+                                <span class="text-warm-600 text-sm">今天 14:32</span>
+                                <div class="w-4 h-4 bg-yellow-400 rounded-full"></div>
+                            </div>
+                            
+                            <p class="text-warm-800 leading-relaxed text-xs mb-3">
+                                刚才路过咖啡店，闻到了熟悉的咖啡香味，突然想起了大学时期和室友一起熬夜复习的日子...
+                            </p>
+                        </div>
+
+                        <!-- 详细信息 -->
+                        <div class="glass-warm rounded-xl p-4">
+                            <h3 class="font-semibold text-warm-800 mb-3 text-sm">详细信息</h3>
+                            <div class="space-y-2 text-xs">
+                                <div class="flex justify-between">
+                                    <span class="text-warm-600">情感分析</span>
+                                    <span class="text-warm-800 font-medium">怀念 (85%)</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-warm-600">地点</span>
+                                    <span class="text-warm-800">星巴克咖啡店</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-warm-600">天气</span>
+                                    <span class="text-warm-800">晴天</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-warm-600">录制时长</span>
+                                    <span class="text-warm-800">2分15秒</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 标签 -->
+                        <div class="glass-warm rounded-xl p-4">
+                            <h3 class="font-semibold text-warm-800 mb-3 text-sm">标签</h3>
+                            <div class="flex flex-wrap gap-2">
+                                <span class="bg-warm-200 text-warm-800 px-2 py-1 rounded-full text-xs">咖啡</span>
+                                <span class="bg-coral-200 text-coral-800 px-2 py-1 rounded-full text-xs">大学</span>
+                                <span class="bg-sunset-200 text-sunset-800 px-2 py-1 rounded-full text-xs">友情</span>
+                                <span class="bg-warm-200 text-warm-800 px-2 py-1 rounded-full text-xs">怀念</span>
+                            </div>
+                        </div>
+
+                        <!-- 操作按钮 -->
+                        <div class="flex space-x-3">
+                            <button class="flex-1 gradient-warm text-white py-2 rounded-xl font-semibold text-sm">
+                                编辑记忆
+                            </button>
+                            <button class="flex-1 glass-warm text-warm-800 py-2 rounded-xl font-semibold text-sm">
+                                分享记忆
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 6. 设置页面 -->
+        <div class="text-center">
+            <h3 class="text-lg font-bold text-warm-800 mb-4">6. 设置页面</h3>
+            <div class="phone-frame bg-gradient-to-br from-warm-100 to-coral-100">
+                <div class="h-full">
+                    <!-- 头部 -->
+                    <div class="glass-warm pt-12 pb-4 px-4 border-b border-warm-200/30">
+                        <div class="flex items-center mb-2">
+                            <svg class="w-5 h-5 text-warm-700 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                            </svg>
+                            <h2 class="text-xl font-bold text-warm-800">设置</h2>
+                        </div>
+                        <p class="text-warm-600 text-sm">个性化你的记忆体验</p>
+                    </div>
+                    
+                    <div class="p-4 space-y-4">
+                        <!-- AI设置 -->
+                        <div class="glass-warm rounded-xl overflow-hidden">
+                            <div class="p-3 gradient-sunset text-white border-b border-warm-200/30">
+                                <h3 class="font-semibold text-sm">AI功能</h3>
+                            </div>
+                            
+                            <div class="divide-y divide-warm-200/30">
+                                <div class="p-3 flex justify-between items-center">
+                                    <div>
+                                        <h4 class="font-medium text-warm-800 text-sm">自动分析情感</h4>
+                                        <p class="text-xs text-warm-600">AI自动识别记录中的情感色彩</p>
+                                    </div>
+                                    <div class="toggle-switch bg-warm-500 active">
+                                        <div class="toggle-dot bg-white"></div>
+                                    </div>
+                                </div>
+                                
+                                <div class="p-3 flex justify-between items-center">
+                                    <div>
+                                        <h4 class="font-medium text-warm-800 text-sm">智能标签生成</h4>
+                                        <p class="text-xs text-warm-600">自动为记录生成相关标签</p>
+                                    </div>
+                                    <div class="toggle-switch bg-warm-500 active">
+                                        <div class="toggle-dot bg-white"></div>
+                                    </div>
+                                </div>
+                                
+                                <div class="p-3 flex justify-between items-center">
+                                    <div>
+                                        <h4 class="font-medium text-warm-800 text-sm">记忆提醒</h4>
+                                        <p class="text-xs text-warm-600">定期提醒回顾重要记忆</p>
+                                    </div>
+                                    <div class="toggle-switch bg-gray-300">
+                                        <div class="toggle-dot bg-white"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 通用设置 -->
+                        <div class="glass-warm rounded-xl overflow-hidden">
+                            <div class="p-3 bg-warm-100 border-b border-warm-200/30">
+                                <h3 class="font-semibold text-warm-800 text-sm">通用设置</h3>
+                            </div>
+                            
+                            <div class="divide-y divide-warm-200/30">
+                                <div class="p-3 flex justify-between items-center">
+                                    <div>
+                                        <h4 class="font-medium text-warm-800 text-sm">语言设置</h4>
+                                        <p class="text-xs text-warm-600">中文（简体）</p>
+                                    </div>
+                                    <svg class="w-4 h-4 text-warm-600" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
+                                    </svg>
+                                </div>
+                                
+                                <div class="p-3 flex justify-between items-center">
+                                    <div>
+                                        <h4 class="font-medium text-warm-800 text-sm">数据备份</h4>
+                                        <p class="text-xs text-warm-600">iCloud 自动备份</p>
+                                    </div>
+                                    <svg class="w-4 h-4 text-warm-600" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 统计卡片 -->
+                        <div class="gradient-warm rounded-xl p-4 text-white">
+                            <h3 class="font-bold text-sm mb-3">你的记忆统计</h3>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div class="text-center">
+                                    <div class="text-xl font-bold">127</div>
+                                    <div class="text-xs opacity-90">记录总数</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-xl font-bold">45</div>
+                                    <div class="text-xs opacity-90">本月新增</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 7. 情感分析页面 -->
+        <div class="text-center">
+            <h3 class="text-lg font-bold text-warm-800 mb-4">7. 情感分析页面</h3>
+            <div class="phone-frame bg-gradient-to-br from-warm-100 to-coral-100">
+                <div class="h-full">
+                    <!-- 头部 -->
+                    <div class="glass-warm pt-12 pb-4 px-4 border-b border-warm-200/30">
+                        <div class="flex items-center mb-2">
+                            <svg class="w-5 h-5 text-warm-700 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                            </svg>
+                            <h2 class="text-xl font-bold text-warm-800">情感分析</h2>
+                        </div>
+                        <p class="text-warm-600 text-sm">了解你的情感变化</p>
+                    </div>
+
+                    <div class="p-4 space-y-4">
+                        <!-- 情感概览 -->
+                        <div class="gradient-sunset rounded-xl p-4 text-white">
+                            <h3 class="font-bold text-sm mb-3">本周情感概览</h3>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div class="text-center">
+                                    <div class="text-2xl mb-1">😊</div>
+                                    <div class="text-xs opacity-90">主要情感</div>
+                                    <div class="font-semibold text-sm">快乐</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-2xl mb-1">📈</div>
+                                    <div class="text-xs opacity-90">情感趋势</div>
+                                    <div class="font-semibold text-sm">上升</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 情感分布 -->
+                        <div class="glass-warm rounded-xl p-4">
+                            <h3 class="font-semibold text-warm-800 mb-3 text-sm">情感分布</h3>
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-2">
+                                        <div class="w-3 h-3 bg-yellow-400 rounded-full"></div>
+                                        <span class="text-warm-800 text-xs">快乐</span>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <div class="w-16 h-1.5 bg-warm-200 rounded-full">
+                                            <div class="w-12 h-1.5 bg-yellow-400 rounded-full"></div>
+                                        </div>
+                                        <span class="text-warm-600 text-xs">75%</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-2">
+                                        <div class="w-3 h-3 bg-blue-400 rounded-full"></div>
+                                        <span class="text-warm-800 text-xs">怀念</span>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <div class="w-16 h-1.5 bg-warm-200 rounded-full">
+                                            <div class="w-8 h-1.5 bg-blue-400 rounded-full"></div>
+                                        </div>
+                                        <span class="text-warm-600 text-xs">50%</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-2">
+                                        <div class="w-3 h-3 bg-red-400 rounded-full"></div>
+                                        <span class="text-warm-800 text-xs">思念</span>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <div class="w-16 h-1.5 bg-warm-200 rounded-full">
+                                            <div class="w-6 h-1.5 bg-red-400 rounded-full"></div>
+                                        </div>
+                                        <span class="text-warm-600 text-xs">35%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 情感日历 -->
+                        <div class="glass-warm rounded-xl p-4">
+                            <h3 class="font-semibold text-warm-800 mb-3 text-sm">情感日历</h3>
+                            <div class="grid grid-cols-7 gap-1">
+                                <div class="text-center text-warm-600 text-xs py-1">日</div>
+                                <div class="text-center text-warm-600 text-xs py-1">一</div>
+                                <div class="text-center text-warm-600 text-xs py-1">二</div>
+                                <div class="text-center text-warm-600 text-xs py-1">三</div>
+                                <div class="text-center text-warm-600 text-xs py-1">四</div>
+                                <div class="text-center text-warm-600 text-xs py-1">五</div>
+                                <div class="text-center text-warm-600 text-xs py-1">六</div>
+                                
+                                <div class="w-4 h-4 bg-warm-200 rounded text-center text-warm-800 text-xs leading-4">1</div>
+                                <div class="w-4 h-4 bg-yellow-400 rounded text-center text-white text-xs leading-4">2</div>
+                                <div class="w-4 h-4 bg-blue-400 rounded text-center text-white text-xs leading-4">3</div>
+                                <div class="w-4 h-4 bg-yellow-400 rounded text-center text-white text-xs leading-4">4</div>
+                                <div class="w-4 h-4 bg-red-400 rounded text-center text-white text-xs leading-4">5</div>
+                                <div class="w-4 h-4 bg-yellow-400 rounded text-center text-white text-xs leading-4">6</div>
+                                <div class="w-4 h-4 bg-green-400 rounded text-center text-white text-xs leading-4">7</div>
+                            </div>
+                        </div>
+
+                        <!-- AI洞察 -->
+                        <div class="glass-warm rounded-xl p-4">
+                            <h3 class="font-semibold text-warm-800 mb-3 text-sm">AI洞察</h3>
+                            <div class="space-y-2">
+                                <p class="text-warm-800 text-xs">• 你在下午时段情绪最为积极</p>
+                                <p class="text-warm-800 text-xs">• 咖啡相关的记忆多带有怀念情感</p>
+                                <p class="text-warm-800 text-xs">• 本周整体情绪状态良好</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 8. 标签管理页面 -->
+        <div class="text-center">
+            <h3 class="text-lg font-bold text-warm-800 mb-4">8. 标签管理页面</h3>
+            <div class="phone-frame bg-gradient-to-br from-warm-100 to-coral-100">
+                <div class="h-full">
+                    <!-- 头部 -->
+                    <div class="glass-warm pt-12 pb-4 px-4 border-b border-warm-200/30">
+                        <div class="flex items-center mb-2">
+                            <svg class="w-5 h-5 text-warm-700 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                            </svg>
+                            <h2 class="text-xl font-bold text-warm-800">标签管理</h2>
+                        </div>
+                        <p class="text-warm-600 text-sm">管理和分类你的标签</p>
+                    </div>
+
+                    <div class="p-4 space-y-4">
+                        <!-- 搜索标签 -->
+                        <div class="glass-warm rounded-xl p-3">
+                            <div class="flex items-center">
+                                <svg class="w-4 h-4 text-warm-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                                <input type="text" placeholder="搜索标签..." class="bg-transparent text-warm-800 placeholder-warm-500 outline-none flex-1 text-sm">
+                            </div>
+                        </div>
+
+                        <!-- 热门标签 -->
+                        <div class="space-y-3">
+                            <h3 class="text-warm-800 font-semibold text-sm">热门标签</h3>
+                            <div class="flex flex-wrap gap-2">
+                                <div class="bg-warm-200 text-warm-800 px-3 py-2 rounded-full text-xs flex items-center">
+                                    <span>咖啡</span>
+                                    <span class="ml-2 bg-warm-300 px-2 py-0.5 rounded-full text-xs">12</span>
+                                </div>
+                                <div class="bg-coral-200 text-coral-800 px-3 py-2 rounded-full text-xs flex items-center">
+                                    <span>音乐</span>
+                                    <span class="ml-2 bg-coral-300 px-2 py-0.5 rounded-full text-xs">8</span>
+                                </div>
+                                <div class="bg-sunset-200 text-sunset-800 px-3 py-2 rounded-full text-xs flex items-center">
+                                    <span>朋友</span>
+                                    <span class="ml-2 bg-sunset-300 px-2 py-0.5 rounded-full text-xs">15</span>
+                                </div>
+                                <div class="bg-warm-200 text-warm-800 px-3 py-2 rounded-full text-xs flex items-center">
+                                    <span>家人</span>
+                                    <span class="ml-2 bg-warm-300 px-2 py-0.5 rounded-full text-xs">6</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 标签分类 -->
+                        <div class="space-y-3">
+                            <div class="glass-warm rounded-xl p-3">
+                                <h4 class="text-warm-800 font-semibold mb-2 text-sm">情感标签</h4>
+                                <div class="flex flex-wrap gap-2">
+                                    <span class="bg-yellow-400/30 text-warm-800 px-2 py-1 rounded text-xs">快乐</span>
+                                    <span class="bg-blue-400/30 text-warm-800 px-2 py-1 rounded text-xs">怀念</span>
+                                    <span class="bg-red-400/30 text-warm-800 px-2 py-1 rounded text-xs">思念</span>
+                                    <span class="bg-green-400/30 text-warm-800 px-2 py-1 rounded text-xs">平静</span>
+                                </div>
+                            </div>
+
+                            <div class="glass-warm rounded-xl p-3">
+                                <h4 class="text-warm-800 font-semibold mb-2 text-sm">场景标签</h4>
+                                <div class="flex flex-wrap gap-2">
+                                    <span class="bg-warm-200 text-warm-800 px-2 py-1 rounded text-xs">咖啡店</span>
+                                    <span class="bg-coral-200 text-coral-800 px-2 py-1 rounded text-xs">公园</span>
+                                    <span class="bg-sunset-200 text-sunset-800 px-2 py-1 rounded text-xs">家中</span>
+                                    <span class="bg-warm-200 text-warm-800 px-2 py-1 rounded text-xs">办公室</span>
+                                </div>
+                            </div>
+
+                            <div class="glass-warm rounded-xl p-3">
+                                <h4 class="text-warm-800 font-semibold mb-2 text-sm">人物标签</h4>
+                                <div class="flex flex-wrap gap-2">
+                                    <span class="bg-warm-200 text-warm-800 px-2 py-1 rounded text-xs">朋友</span>
+                                    <span class="bg-coral-200 text-coral-800 px-2 py-1 rounded text-xs">家人</span>
+                                    <span class="bg-sunset-200 text-sunset-800 px-2 py-1 rounded text-xs">同事</span>
+                                    <span class="bg-warm-200 text-warm-800 px-2 py-1 rounded text-xs">室友</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 9. 统计数据页面 -->
+        <div class="text-center">
+            <h3 class="text-lg font-bold text-warm-800 mb-4">9. 统计数据页面</h3>
+            <div class="phone-frame bg-gradient-to-br from-warm-100 to-coral-100">
+                <div class="h-full">
+                    <!-- 头部 -->
+                    <div class="glass-warm pt-12 pb-4 px-4 border-b border-warm-200/30">
+                        <div class="flex items-center mb-2">
+                            <svg class="w-5 h-5 text-warm-700 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                            </svg>
+                            <h2 class="text-xl font-bold text-warm-800">统计数据</h2>
+                        </div>
+                        <p class="text-warm-600 text-sm">了解你的使用情况</p>
+                    </div>
+
+                    <div class="p-4 space-y-4">
+                        <!-- 总览统计 -->
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="glass-warm rounded-xl p-3 text-center">
+                                <div class="text-2xl font-bold text-warm-800 mb-1">127</div>
+                                <div class="text-warm-600 text-xs">总记录数</div>
+                            </div>
+                            <div class="glass-warm rounded-xl p-3 text-center">
+                                <div class="text-2xl font-bold text-warm-800 mb-1">45</div>
+                                <div class="text-warm-600 text-xs">本月新增</div>
+                            </div>
+                            <div class="glass-warm rounded-xl p-3 text-center">
+                                <div class="text-2xl font-bold text-warm-800 mb-1">8.5</div>
+                                <div class="text-warm-600 text-xs">平均时长(分)</div>
+                            </div>
+                            <div class="glass-warm rounded-xl p-3 text-center">
+                                <div class="text-2xl font-bold text-warm-800 mb-1">23</div>
+                                <div class="text-warm-600 text-xs">连续天数</div>
+                            </div>
+                        </div>
+
+                        <!-- 使用趋势 -->
+                        <div class="glass-warm rounded-xl p-4">
+                            <h3 class="text-warm-800 font-semibold mb-3 text-sm">使用趋势</h3>
+                            <div class="space-y-2">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-warm-800 text-xs">周一</span>
+                                    <div class="flex items-center">
+                                        <div class="w-16 h-1.5 bg-warm-200 rounded-full mr-2">
+                                            <div class="w-12 h-1.5 bg-warm-500 rounded-full"></div>
+                                        </div>
+                                        <span class="text-warm-800 text-xs">8</span>
+                                    </div>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-warm-800 text-xs">周二</span>
+                                    <div class="flex items-center">
+                                        <div class="w-16 h-1.5 bg-warm-200 rounded-full mr-2">
+                                            <div class="w-8 h-1.5 bg-warm-500 rounded-full"></div>
+                                        </div>
+                                        <span class="text-warm-800 text-xs">6</span>
+                                    </div>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-warm-800 text-xs">周三</span>
+                                    <div class="flex items-center">
+                                        <div class="w-16 h-1.5 bg-warm-200 rounded-full mr-2">
+                                            <div class="w-16 h-1.5 bg-warm-500 rounded-full"></div>
+                                        </div>
+                                        <span class="text-warm-800 text-xs">10</span>
+                                    </div>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-warm-800 text-xs">周四</span>
+                                    <div class="flex items-center">
+                                        <div class="w-16 h-1.5 bg-warm-200 rounded-full mr-2">
+                                            <div class="w-10 h-1.5 bg-warm-500 rounded-full"></div>
+                                        </div>
+                                        <span class="text-warm-800 text-xs">7</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 时间分布 -->
+                        <div class="glass-warm rounded-xl p-4">
+                            <h3 class="text-warm-800 font-semibold mb-3 text-sm">时间分布</h3>
+                            <div class="grid grid-cols-4 gap-2">
+                                <div class="text-center">
+                                    <div class="w-8 h-8 bg-warm-200 rounded-full flex items-center justify-center mx-auto mb-1">
+                                        <span class="text-warm-800 text-xs">🌅</span>
+                                    </div>
+                                    <div class="text-warm-800 text-xs font-medium">早晨</div>
+                                    <div class="text-warm-600 text-xs">15%</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="w-8 h-8 bg-yellow-200 rounded-full flex items-center justify-center mx-auto mb-1">
+                                        <span class="text-warm-800 text-xs">☀️</span>
+                                    </div>
+                                    <div class="text-warm-800 text-xs font-medium">上午</div>
+                                    <div class="text-warm-600 text-xs">25%</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="w-8 h-8 bg-orange-200 rounded-full flex items-center justify-center mx-auto mb-1">
+                                        <span class="text-warm-800 text-xs">🌞</span>
+                                    </div>
+                                    <div class="text-warm-800 text-xs font-medium">下午</div>
+                                    <div class="text-warm-600 text-xs">40%</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="w-8 h-8 bg-purple-200 rounded-full flex items-center justify-center mx-auto mb-1">
+                                        <span class="text-warm-800 text-xs">🌙</span>
+                                    </div>
+                                    <div class="text-warm-800 text-xs font-medium">晚上</div>
+                                    <div class="text-warm-600 text-xs">20%</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 成就徽章 -->
+                        <div class="glass-warm rounded-xl p-4">
+                            <h3 class="text-warm-800 font-semibold mb-3 text-sm">成就徽章</h3>
+                            <div class="grid grid-cols-3 gap-3">
+                                <div class="text-center">
+                                    <div class="w-10 h-10 bg-yellow-400 rounded-full flex items-center justify-center mx-auto mb-1">
+                                        <span class="text-white text-sm">🏆</span>
+                                    </div>
+                                    <div class="text-warm-800 text-xs">记录达人</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="w-10 h-10 bg-blue-400 rounded-full flex items-center justify-center mx-auto mb-1">
+                                        <span class="text-white text-sm">📅</span>
+                                    </div>
+                                    <div class="text-warm-800 text-xs">坚持不懈</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="w-10 h-10 bg-green-400 rounded-full flex items-center justify-center mx-auto mb-1">
+                                        <span class="text-white text-sm">🎯</span>
+                                    </div>
+                                    <div class="text-warm-800 text-xs">目标达成</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 页面说明 -->
+    <div class="max-w-7xl mx-auto mt-12 text-center">
+        <div class="bg-white/80 backdrop-blur-lg rounded-2xl p-8 shadow-xl">
+            <h2 class="text-3xl font-bold text-warm-800 mb-6">Memory Vault - 完整功能展示</h2>
+            <div class="grid grid-cols-3 gap-6 text-left">
+                <div>
+                    <h3 class="font-bold text-warm-800 mb-3">核心功能页面</h3>
+                    <ul class="space-y-2 text-warm-700">
+                        <li>• 欢迎页面 - 品牌展示与引导</li>
+                        <li>• 主页面 - 语音录制与快速操作</li>
+                        <li>• 搜索页面 - AI智能搜索功能</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-bold text-warm-800 mb-3">内容管理页面</h3>
+                    <ul class="space-y-2 text-warm-700">
+                        <li>• 时间线页面 - 按时间浏览记忆</li>
+                        <li>• 记忆详情页面 - 完整记忆展示</li>
+                        <li>• 标签管理页面 - 分类管理标签</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-bold text-warm-800 mb-3">分析与设置页面</h3>
+                    <ul class="space-y-2 text-warm-700">
+                        <li>• 情感分析页面 - AI情感洞察</li>
+                        <li>• 统计数据页面 - 使用数据分析</li>
+                        <li>• 设置页面 - 个性化配置</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="mt-8 p-6 bg-gradient-to-r from-warm-500 to-coral-500 rounded-xl text-white">
+                <h3 class="font-bold text-xl mb-2">设计特色</h3>
+                <p class="text-white/90">
+                    采用暖色调配色方案，融合毛玻璃效果与渐变设计，提供温馨舒适的用户体验。
+                    每个页面都经过精心设计，确保功能完整性与视觉美观性的完美平衡。
+                </p>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
