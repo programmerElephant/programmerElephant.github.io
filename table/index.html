@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>数据分析后台</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background-color: #f2f2f7; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif; }
+    .app-card { transition: all 0.2s; }
+    .app-card:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.12); }
+    .active-app { border-color: #007aff; box-shadow: 0 5px 15px rgba(0, 122, 255, 0.2); }
+    .drawer { position: fixed; top: 0; right: -100%; width: 90%; max-width: 600px; height: 100%; background: #fff; box-shadow: -2px 0 10px rgba(0,0,0,0.3); transition: right 0.3s; z-index: 50; overflow-y: auto; padding: 20px; }
+    .drawer.open { right: 0; }
+    .drawer-close { position: absolute; top: 10px; right: 10px; cursor: pointer; font-size: 20px; font-weight: bold; }
+  </style>
+</head>
+<body class="min-h-screen p-4">
+
+  <header class="text-center mb-6">
+    <h1 class="text-3xl font-bold text-gray-800">数据分析后台</h1>
+    <p class="text-gray-500 mt-1">查看 VPN Proxy / LumoTalk 的用户数据和留存情况</p>
+  </header>
+
+  <!-- 管理员ID输入 -->
+  <div class="max-w-lg mx-auto mb-6">
+    <label class="block text-gray-700 mb-1">管理员ID（必填）</label>
+    <input id="adminId" type="text" placeholder="输入管理员ID" class="w-full p-2 border rounded">
+  </div>
+
+  <!-- App选择 -->
+  <div class="flex justify-center gap-4 mb-2">
+    <div id="appVpnProxy" class="app-card border border-gray-300 rounded-lg p-4 cursor-pointer active-app">
+      <h2 class="font-semibold text-lg text-gray-800">VPN Proxy</h2>
+    </div>
+    <div id="appLumoTalk" class="app-card border border-gray-300 rounded-lg p-4 cursor-pointer">
+      <h2 class="font-semibold text-lg text-gray-800">LumoTalk</h2>
+    </div>
+  </div>
+
+  <div class="max-w-lg mx-auto mb-6">
+    <p class="text-center text-gray-600" id="currentAppStatus">当前选择 App：<span class="font-semibold text-blue-600">VPN Proxy</span></p>
+  </div>
+
+  <!-- 查询表单 -->
+  <div class="max-w-lg mx-auto bg-white p-6 rounded-xl shadow mb-6">
+    <div class="flex flex-col space-y-4">
+      <div>
+        <label class="block text-gray-700 mb-1">开始日期</label>
+        <input id="startDate" type="date" class="w-full p-2 border rounded">
+      </div>
+      <div>
+        <label class="block text-gray-700 mb-1">结束日期</label>
+        <input id="endDate" type="date" class="w-full p-2 border rounded">
+      </div>
+      <div>
+        <label class="block text-gray-700 mb-1">查询类型</label>
+        <select id="action" class="w-full p-2 border rounded">
+          <option value="retention">留存率</option>
+          <option value="userIds">用户列表</option>
+          <option value="userData">单用户数据</option>
+          <option value="vipCount">VIP人数</option>
+        </select>
+      </div>
+      <div id="userIdInputWrapper" class="hidden">
+        <label class="block text-gray-700 mb-1">用户ID</label>
+        <input id="userIdInput" type="text" placeholder="输入用户ID查询单用户" class="w-full p-2 border rounded">
+      </div>
+      <button id="fetchBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white p-3 rounded font-semibold transition-all">查询</button>
+    </div>
+  </div>
+
+  <!-- 图表 -->
+  <div class="max-w-4xl mx-auto bg-white p-6 rounded-xl shadow mb-6">
+    <canvas id="retentionChart"></canvas>
+  </div>
+
+  <!-- 用户数据显示 -->
+  <div id="userDataContainer" class="max-w-4xl mx-auto grid grid-cols-1 gap-4 mb-6"></div>
+
+  <!-- 单用户抽屉 -->
+  <div id="userDrawer" class="drawer">
+    <span class="drawer-close" id="drawerClose">&times;</span>
+    <h2 class="text-xl font-bold mb-4 text-gray-800">用户详情</h2>
+    <div id="drawerContent"></div>
+  </div>
+
+<script>
+let selectedApp = { name: "VPN Proxy", table: "EVENT_VPNPROXY" };
+const appVpnProxy = document.getElementById('appVpnProxy');
+const appLumoTalk = document.getElementById('appLumoTalk');
+const currentAppStatus = document.getElementById('currentAppStatus');
+const retentionChart = document.getElementById('retentionChart');
+const userDataContainer = document.getElementById('userDataContainer');
+const drawer = document.getElementById('userDrawer');
+const drawerContent = document.getElementById('drawerContent');
+const drawerClose = document.getElementById('drawerClose');
+const adminIdInput = document.getElementById('adminId');
+const userIdInputWrapper = document.getElementById('userIdInputWrapper');
+const userIdInput = document.getElementById('userIdInput');
+let chartInstance = null;
+
+appVpnProxy.addEventListener('click', () => selectApp('VPN Proxy', 'EVENT_VPNPROXY'));
+appLumoTalk.addEventListener('click', () => selectApp('LumoTalk', 'EVENT_LUMOTALK'));
+
+function selectApp(name, table) {
+  selectedApp = { name, table };
+  appVpnProxy.classList.toggle('active-app', name === 'VPN Proxy');
+  appLumoTalk.classList.toggle('active-app', name === 'LumoTalk');
+  currentAppStatus.innerHTML = `当前选择 App：<span class="font-semibold text-blue-600">${name}</span>`;
+}
+
+drawerClose.addEventListener('click', () => drawer.classList.remove('open'));
+
+document.getElementById('action').addEventListener('change', (e) => {
+  if (e.target.value === 'userData') {
+    userIdInputWrapper.classList.remove('hidden');
+  } else {
+    userIdInputWrapper.classList.add('hidden');
+  }
+});
+
+// VIP状态颜色映射
+function vipStatusLabel(status) {
+  switch(status) {
+    case 1: return '<span class="text-white bg-green-500 px-2 py-1 rounded-full text-xs">当前会员</span>';
+    case 2: return '<span class="text-white bg-orange-500 px-2 py-1 rounded-full text-xs">会员未续费</span>';
+    default: return '<span class="text-gray-500 bg-gray-200 px-2 py-1 rounded-full text-xs">普通用户</span>';
+  }
+}
+
+// 渲染用户列表 / 单用户卡片
+function renderUserData(data, isUserIdList = false) {
+  userDataContainer.innerHTML = '';
+  if (!data || data.length === 0) {
+    userDataContainer.innerHTML = '<p class="text-gray-500 text-center">没有数据</p>';
+    return;
+  }
+
+  data.forEach(item => {
+    const card = document.createElement('div');
+    card.className = 'bg-white p-4 rounded-xl shadow hover:shadow-lg transition-all cursor-pointer';
+
+    if (isUserIdList) {
+      // 美化显示 userId + 基础信息
+      card.innerHTML = `
+        <div class="flex justify-between items-center">
+          <p class="text-blue-600 font-semibold">${item.user_id}</p>
+          <div class="flex gap-2">
+            <span>国家: ${item.country_code || '-'}</span>
+            <span>设备: ${item.device || '-'}</span>
+            ${vipStatusLabel(item.vip_status)}
+          </div>
+        </div>
+      `;
+      card.addEventListener('click', () => fetchSingleUserData(item.user_id));
+    } else {
+      card.innerHTML = `
+        <div class="flex justify-between items-center mb-2">
+          <div>
+            <p class="font-semibold text-blue-600 text-sm">UserID: ${item.user_id}</p>
+            <p class="text-gray-800 font-medium text-lg">${item.name}</p>
+          </div>
+          <div class="text-gray-500 text-sm">${item.log_time}</div>
+        </div>
+        <div class="grid grid-cols-2 gap-2 text-gray-600 text-sm mb-2">
+          <div><span class="font-semibold">国家:</span> ${item.country_code || '-'}</div>
+          <div><span class="font-semibold">地区:</span> ${item.area || '-'}</div>
+          <div><span class="font-semibold">设备:</span> ${item.device}</div>
+          <div><span class="font-semibold">设备详情:</span> ${item.device_detail}</div>
+          <div><span class="font-semibold">VPN 状态:</span> ${item.vpn_status}</div>
+          <div><span class="font-semibold">广告展示:</span> ${item.ad_showed}</div>
+          <div><span class="font-semibold">广告点击:</span> ${item.ad_clicked}</div>
+          <div><span class="font-semibold">VIP:</span> ${vipStatusLabel(item.vip_status)}</div>
+        </div>
+        <div class="text-gray-700 text-sm">
+          <p class="font-semibold">Body:</p>
+          <div class="flex flex-wrap gap-2 mt-1">
+            ${item.body ? item.body.split('|').map(b => `<span class="bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs">${b.trim()}</span>`).join('') : '-'}
+          </div>
+        </div>
+      `;
+    }
+
+    userDataContainer.appendChild(card);
+  });
+}
+
+// 单用户数据抽屉展示
+async function fetchSingleUserData(userId) {
+  if (!adminIdInput.value.trim()) { alert('请输入管理员ID'); return; }
+
+  const url = new URL('https://eventquery.chamanelephant.workers.dev/');
+  url.searchParams.append('action', 'userData');
+  url.searchParams.append('table', selectedApp.table);
+  url.searchParams.append('userId', userId);
+  url.searchParams.append('adminId', adminIdInput.value.trim());
+
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    drawerContent.innerHTML = '';
+    if (!data || data.length === 0) {
+      drawerContent.innerHTML = '<p class="text-gray-500">没有数据</p>';
+    } else {
+      data.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'border-b border-gray-200 mb-2 pb-2';
+        card.innerHTML = `
+          <p><span class="font-semibold">事件名:</span> ${item.name}</p>
+          <p><span class="font-semibold">时间:</span> ${item.log_time}</p>
+          <p><span class="font-semibold">设备:</span> ${item.device} (${item.device_detail})</p>
+          <p><span class="font-semibold">VIP状态:</span> ${vipStatusLabel(item.vip_status)}</p>
+          <p><span class="font-semibold">VPN状态:</span> ${item.vpn_status}</p>
+          <p><span class="font-semibold">广告展示/点击:</span> ${item.ad_showed}/${item.ad_clicked}</p>
+          <p><span class="font-semibold">国家/地区:</span> ${item.country_code || '-'} / ${item.area || '-'}</p>
+          <p><span class="font-semibold">Body:</span></p>
+          <div class="flex flex-wrap gap-2 mt-1">
+            ${item.body ? item.body.split('|').map(b => `<span class="bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs">${b.trim()}</span>`).join('') : '-'}
+          </div>
+        `;
+        drawerContent.appendChild(card);
+      });
+    }
+    drawer.classList.add('open');
+  } catch(err) {
+    drawerContent.innerHTML = `<p class="text-red-500">请求失败: ${err.message}</p>`;
+    drawer.classList.add('open');
+  }
+}
+
+// 查询按钮
+document.getElementById('fetchBtn').addEventListener('click', async () => {
+  if (!adminIdInput.value.trim()) { alert('请输入管理员ID'); return; }
+
+  const startDate = document.getElementById('startDate').value;
+  const endDate = document.getElementById('endDate').value;
+  const action = document.getElementById('action').value;
+  const userIdVal = userIdInput.value.trim();
+
+  if ((action === 'retention' || action === 'userIds' || action === 'vipCount') && (!startDate || !endDate)) {
+    alert('请选择开始和结束日期'); return;
+  }
+  if (action === 'userData' && !userIdVal) { alert('请输入用户ID'); return; }
+
+  const url = new URL('https://eventquery.chamanelephant.workers.dev/');
+  url.searchParams.append('action', action);
+  url.searchParams.append('table', selectedApp.table);
+  url.searchParams.append('adminId', adminIdInput.value.trim());
+  if (startDate) url.searchParams.append('startDate', startDate);
+  if (endDate) url.searchParams.append('endDate', endDate);
+  if (action === 'userData') url.searchParams.append('userId', userIdVal);
+
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (action === 'userData') {
+      renderUserData(data, false);
+      if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
+    } else if (action === 'userIds') {
+      renderUserData(data, true);
+      if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
+    } else if (action === 'retention') {
+      renderUserData([]);
+      const labels = data.map(item => item.date);
+      const newUser = data.map(item => item.new_user_count);
+      const retention = data.map(item => item.day1_retention);
+      const retentionRate = data.map(item => item.day1_rate * 100);
+
+      if (chartInstance) chartInstance.destroy();
+      chartInstance = new Chart(retentionChart, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            { label: '新用户', data: newUser, borderColor: 'blue', backgroundColor: 'rgba(0,0,255,0.1)', yAxisID: 'y1' },
+            { label: '次日留存', data: retention, borderColor: 'green', backgroundColor: 'rgba(0,255,0,0.1)', yAxisID: 'y1' },
+            { label: '次日留存率 %', data: retentionRate, borderColor: 'red', backgroundColor: 'rgba(255,0,0,0.1)', yAxisID: 'y2' },
+          ]
+        },
+        options: {
+          responsive: true,
+          interaction: { mode: 'index', intersect: false },
+          stacked: false,
+          scales: {
+            y1: { type: 'linear', position: 'left', title: { display: true, text: '人数' } },
+            y2: { type: 'linear', position: 'right', title: { display: true, text: '留存率 %' }, grid: { drawOnChartArea: false } }
+          }
+        }
+      });
+    } else {
+      renderUserData([]);
+      if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
+      userDataContainer.innerHTML = `<pre class="text-gray-700 text-sm">${JSON.stringify(data, null, 2)}</pre>`;
+    }
+
+  } catch(err) {
+    renderUserData([]);
+    if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
+    userDataContainer.innerHTML = `<p class="text-red-500">请求失败: ${err.message}</p>`;
+  }
+});
+</script>
+
+</body>
+</html>
