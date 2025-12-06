@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>数据分析后台</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
@@ -11,9 +11,15 @@
     .app-card { transition: all 0.2s; }
     .app-card:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.12); }
     .active-app { border-color: #007aff; box-shadow: 0 5px 15px rgba(0, 122, 255, 0.2); }
-    .drawer { position: fixed; top: 0; right: -100%; width: 90%; max-width: 600px; height: 100%; background: #fff; box-shadow: -2px 0 10px rgba(0,0,0,0.3); transition: right 0.3s; z-index: 50; overflow-y: auto; padding: 20px; }
+    /* Drawer & overlay */
+    .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 40; opacity: 0; transition: opacity 0.25s; pointer-events: none; }
+    .overlay.show { opacity: 1; pointer-events: auto; }
+    .drawer { position: fixed; top: 0; right: -100%; width: 92%; max-width: 760px; height: 100%; background: #fff; box-shadow: -8px 0 30px rgba(0,0,0,0.25); transition: right 0.28s cubic-bezier(.2,.9,.2,1); z-index: 50; overflow-y: auto; padding: 20px; -webkit-overflow-scrolling: touch; border-left: 1px solid rgba(0,0,0,0.06); }
     .drawer.open { right: 0; }
     .drawer-close { position: absolute; top: 10px; right: 10px; cursor: pointer; font-size: 20px; font-weight: bold; }
+    /* small helpers */
+    .sort-btn { padding: 6px 10px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.08); background: #fff; }
+    .search-input { padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.08); width: 100%; }
   </style>
 </head>
 <body class="min-h-screen p-4">
@@ -76,17 +82,34 @@
     <canvas id="retentionChart"></canvas>
   </div>
 
+  <!-- 控件：用户列表搜索 & 排序 -->
+  <div id="userListControls" class="max-w-4xl mx-auto bg-white p-4 rounded-xl shadow mb-4 hidden">
+    <div class="flex gap-3 items-center">
+      <input id="userListSearch" class="search-input" placeholder="搜索用户（输入即筛选，可搜 user_id / 国家 / 设备 等）" />
+      <button id="userListSortBtn" class="sort-btn">按时间 ↓</button>
+    </div>
+  </div>
+
   <!-- 用户数据显示 -->
   <div id="userDataContainer" class="max-w-4xl mx-auto grid grid-cols-1 gap-4 mb-6"></div>
 
-  <!-- 单用户抽屉 -->
-  <div id="userDrawer" class="drawer">
-    <span class="drawer-close" id="drawerClose">&times;</span>
-    <h2 class="text-xl font-bold mb-4 text-gray-800">用户详情</h2>
+  <!-- overlay & 单用户抽屉 -->
+  <div id="overlay" class="overlay"></div>
+
+  <div id="userDrawer" class="drawer" role="dialog" aria-modal="true" aria-hidden="true">
+    <span class="drawer-close" id="drawerClose" title="关闭">&times;</span>
+    <div class="mb-4">
+      <div class="flex gap-2 items-center mb-3">
+        <input id="drawerSearch" class="search-input" placeholder="在该用户日志中搜索（输入即筛）" />
+        <button id="drawerSortBtn" class="sort-btn">按时间 ↓</button>
+      </div>
+      <h2 class="text-xl font-bold mb-2 text-gray-800">用户详情</h2>
+    </div>
     <div id="drawerContent"></div>
   </div>
 
 <script>
+/* ========== 全局 state ========== */
 let selectedApp = { name: "VPN Proxy", table: "EVENT_VPNPROXY" };
 const appVpnProxy = document.getElementById('appVpnProxy');
 const appLumoTalk = document.getElementById('appLumoTalk');
@@ -99,8 +122,26 @@ const drawerClose = document.getElementById('drawerClose');
 const adminIdInput = document.getElementById('adminId');
 const userIdInputWrapper = document.getElementById('userIdInputWrapper');
 const userIdInput = document.getElementById('userIdInput');
+const overlay = document.getElementById('overlay');
+const userListControls = document.getElementById('userListControls');
+const userListSearch = document.getElementById('userListSearch');
+const userListSortBtn = document.getElementById('userListSortBtn');
+const drawerSearch = document.getElementById('drawerSearch');
+const drawerSortBtn = document.getElementById('drawerSortBtn');
+
 let chartInstance = null;
 
+/* 数据缓存，用于搜索/排序 */
+let userListData = [];    // 用于 action='userIds' 的原始数据
+let userListView = [];    // 当前视图（filter + sort）
+let singleUserData = [];  // 用于抽屉中单用户日志原始数据
+let singleUserView = [];  // 抽屉中的视图数据
+
+/* 排序状态：true => 升序, false => 降序 */
+let userListSortAsc = false;
+let drawerSortAsc = false;
+
+/* ========== app 选择 ========== */
 appVpnProxy.addEventListener('click', () => selectApp('VPN Proxy', 'EVENT_VPNPROXY'));
 appLumoTalk.addEventListener('click', () => selectApp('LumoTalk', 'EVENT_LUMOTALK'));
 
@@ -111,17 +152,24 @@ function selectApp(name, table) {
   currentAppStatus.innerHTML = `当前选择 App：<span class="font-semibold text-blue-600">${name}</span>`;
 }
 
-drawerClose.addEventListener('click', () => drawer.classList.remove('open'));
-
+/* ========== action 切换控制 ========== */
 document.getElementById('action').addEventListener('change', (e) => {
-  if (e.target.value === 'userData') {
+  const val = e.target.value;
+  if (val === 'userData') {
     userIdInputWrapper.classList.remove('hidden');
+    userListControls.classList.add('hidden');
+    clearUserListState();
+  } else if (val === 'userIds') {
+    userIdInputWrapper.classList.add('hidden');
+    userListControls.classList.remove('hidden');
   } else {
     userIdInputWrapper.classList.add('hidden');
+    userListControls.classList.add('hidden');
+    clearUserListState();
   }
 });
 
-// VIP状态颜色映射
+/* ========== 辅助 UI 方法 ========== */
 function vipStatusLabel(status) {
   switch(status) {
     case 1: return '<span class="text-white bg-green-500 px-2 py-1 rounded-full text-xs">当前会员</span>';
@@ -130,7 +178,13 @@ function vipStatusLabel(status) {
   }
 }
 
-// 渲染用户列表 / 单用户卡片
+function formatDateStr(s) {
+  if (!s) return '-';
+  // 尝试直接返回字符串（假设服务端已给出可读时间）：
+  return s;
+}
+
+/* ========== 渲染用户列表 / 单用户卡片 ========== */
 function renderUserData(data, isUserIdList = false) {
   userDataContainer.innerHTML = '';
   if (!data || data.length === 0) {
@@ -143,36 +197,46 @@ function renderUserData(data, isUserIdList = false) {
     card.className = 'bg-white p-4 rounded-xl shadow hover:shadow-lg transition-all cursor-pointer';
 
     if (isUserIdList) {
-      // 美化显示 userId + 基础信息
       card.innerHTML = `
         <div class="flex justify-between items-center">
           <p class="text-blue-600 font-semibold">${item.user_id}</p>
-          <div class="flex gap-2">
-            <span>国家: ${item.country_code || '-'}</span>
-            <span>设备: ${item.device || '-'}</span>
+          <div class="flex gap-2 items-center">
+            <span class="text-sm">国家: ${item.country_code || '-'}</span>
+            <span class="text-sm">设备: ${item.device || '-'}</span>
             ${vipStatusLabel(item.vip_status)}
+            <button class="ml-2 px-2 py-1 text-xs border rounded" data-userid="${item.user_id}">打开</button>
           </div>
         </div>
       `;
-      card.addEventListener('click', () => fetchSingleUserData(item.user_id));
+      // 点击卡片或打开按钮都加载单用户日志
+      card.addEventListener('click', (ev) => {
+        // 避免重复触发（button 也会触发 card click）
+        const uid = item.user_id;
+        fetchSingleUserData(uid);
+      });
+      const openBtn = card.querySelector('button[data-userid]');
+      if (openBtn) {
+        openBtn.addEventListener('click', (ev) => {
+          ev.stopPropagation();
+          fetchSingleUserData(item.user_id);
+        });
+      }
     } else {
       card.innerHTML = `
         <div class="flex justify-between items-center mb-2">
           <div>
             <p class="font-semibold text-blue-600 text-sm">UserID: ${item.user_id}</p>
-            <p class="text-gray-800 font-medium text-lg">${item.name}</p>
+            <p class="text-gray-800 font-medium text-lg">${item.name || '-'}</p>
           </div>
-          <div class="text-gray-500 text-sm">${item.log_time}</div>
+          <div class="text-gray-500 text-sm">${formatDateStr(item.log_time)}</div>
         </div>
         <div class="grid grid-cols-2 gap-2 text-gray-600 text-sm mb-2">
           <div><span class="font-semibold">国家:</span> ${item.country_code || '-'}</div>
           <div><span class="font-semibold">地区:</span> ${item.area || '-'}</div>
-          <div><span class="font-semibold">设备:</span> ${item.device}</div>
-          <div><span class="font-semibold">设备详情:</span> ${item.device_detail}</div>
-          <div><span class="font-semibold">VPN 状态:</span> ${item.vpn_status}</div>
-          <div><span class="font-semibold">广告展示:</span> ${item.ad_showed}</div>
-          <div><span class="font-semibold">广告点击:</span> ${item.ad_clicked}</div>
-          <div><span class="font-semibold">VIP:</span> ${vipStatusLabel(item.vip_status)}</div>
+          <div><span class="font-semibold">设备:</span> ${item.device || '-'}</div>
+          <div><span class="font-semibold">设备详情:</span> ${item.device_detail || '-'}</div>
+          <div><span class="font-semibold">VPN 状态:</span> ${item.vpn_status || '-'}</div>
+          <div><span class="font-semibold">广告展示:</span> ${item.ad_showed || '-'}</div>
         </div>
         <div class="text-gray-700 text-sm">
           <p class="font-semibold">Body:</p>
@@ -187,11 +251,11 @@ function renderUserData(data, isUserIdList = false) {
   });
 }
 
-// 单用户数据抽屉展示
+/* ========== 单用户抽屉（包含搜索 + 排序） ========== */
 async function fetchSingleUserData(userId) {
   if (!adminIdInput.value.trim()) { alert('请输入管理员ID'); return; }
 
-  const url = new URL('https://eventquery.chamanelephant.workers.dev/');
+  const url = new URL('https://analyze.yuanma.live/event');
   url.searchParams.append('action', 'userData');
   url.searchParams.append('table', selectedApp.table);
   url.searchParams.append('userId', userId);
@@ -200,37 +264,203 @@ async function fetchSingleUserData(userId) {
   try {
     const res = await fetch(url);
     const data = await res.json();
-    drawerContent.innerHTML = '';
-    if (!data || data.length === 0) {
-      drawerContent.innerHTML = '<p class="text-gray-500">没有数据</p>';
-    } else {
-      data.forEach(item => {
-        const card = document.createElement('div');
-        card.className = 'border-b border-gray-200 mb-2 pb-2';
-        card.innerHTML = `
-          <p><span class="font-semibold">事件名:</span> ${item.name}</p>
-          <p><span class="font-semibold">时间:</span> ${item.log_time}</p>
-          <p><span class="font-semibold">设备:</span> ${item.device} (${item.device_detail})</p>
-          <p><span class="font-semibold">VIP状态:</span> ${vipStatusLabel(item.vip_status)}</p>
-          <p><span class="font-semibold">VPN状态:</span> ${item.vpn_status}</p>
-          <p><span class="font-semibold">广告展示/点击:</span> ${item.ad_showed}/${item.ad_clicked}</p>
-          <p><span class="font-semibold">国家/地区:</span> ${item.country_code || '-'} / ${item.area || '-'}</p>
-          <p><span class="font-semibold">Body:</span></p>
-          <div class="flex flex-wrap gap-2 mt-1">
-            ${item.body ? item.body.split('|').map(b => `<span class="bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs">${b.trim()}</span>`).join('') : '-'}
-          </div>
-        `;
-        drawerContent.appendChild(card);
-      });
-    }
-    drawer.classList.add('open');
+
+    singleUserData = Array.isArray(data) ? data : [];
+    // 默认视图是原始数组（倒序显示最近的在前面）
+    drawerSortAsc = false;
+    applyDrawerFilteringAndSorting();
+
+    openDrawer();
   } catch(err) {
+    singleUserData = [];
+    singleUserView = [];
     drawerContent.innerHTML = `<p class="text-red-500">请求失败: ${err.message}</p>`;
-    drawer.classList.add('open');
+    openDrawer();
   }
 }
 
-// 查询按钮
+function renderSingleUserView() {
+  drawerContent.innerHTML = '';
+  if (!singleUserView || singleUserView.length === 0) {
+    drawerContent.innerHTML = '<p class="text-gray-500">没有数据</p>';
+    return;
+  }
+
+  singleUserView.forEach(item => {
+    const card = document.createElement('div');
+    card.className = 'border-b border-gray-200 mb-2 pb-2';
+    card.innerHTML = `
+      <p><span class="font-semibold">事件名:</span> ${item.name || '-'}</p>
+      <p><span class="font-semibold">时间:</span> ${formatDateStr(item.log_time)}</p>
+      <p><span class="font-semibold">设备:</span> ${item.device || '-'} (${item.device_detail || '-'})</p>
+      <p><span class="font-semibold">VIP状态:</span> ${vipStatusLabel(item.vip_status)}</p>
+      <p><span class="font-semibold">VPN状态:</span> ${item.vpn_status || '-'}</p>
+      <p><span class="font-semibold">广告展示/点击:</span> ${item.ad_showed || 0}/${item.ad_clicked || 0}</p>
+      <p><span class="font-semibold">国家/地区:</span> ${item.country_code || '-'} / ${item.area || '-'}</p>
+      <p><span class="font-semibold">Body:</span></p>
+      <div class="flex flex-wrap gap-2 mt-1">
+        ${item.body ? item.body.split('|').map(b => `<span class="bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs">${b.trim()}</span>`).join('') : '-'}
+      </div>
+    `;
+    drawerContent.appendChild(card);
+  });
+}
+
+/* ========== 抽屉开/关行为（包含遮罩、Esc、阻止背景滚动、触摸滑动关闭） ========== */
+function openDrawer() {
+  overlay.classList.add('show');
+  drawer.classList.add('open');
+  drawer.setAttribute('aria-hidden', 'false');
+  // 阻止背景滚动
+  document.body.style.overflow = 'hidden';
+}
+
+function closeDrawer() {
+  overlay.classList.remove('show');
+  drawer.classList.remove('open');
+  drawer.setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
+}
+
+/* 点击遮罩关闭 */
+overlay.addEventListener('click', () => {
+  closeDrawer();
+});
+
+/* 点击关闭按钮 */
+drawerClose.addEventListener('click', () => {
+  closeDrawer();
+});
+
+/* Esc 关闭 */
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && drawer.classList.contains('open')) {
+    closeDrawer();
+  }
+});
+
+/* 为了避免抽屉内滚动冒泡到页面（造成背景滚动或手势穿透），监听 touch 事件并阻止冒泡 */
+drawer.addEventListener('touchstart', (e) => {
+  e.stopPropagation();
+}, { passive: true });
+drawer.addEventListener('touchmove', (e) => {
+  e.stopPropagation();
+}, { passive: true });
+overlay.addEventListener('touchstart', (e) => {
+  // 遮罩阻止传给后台的触摸事件
+  e.stopPropagation();
+}, { passive: true });
+
+/* 支持向右快速滑动关闭抽屉（移动端用户体验）：记录 touch 起始点 */
+let touchStartX = null;
+let touchStartY = null;
+drawer.addEventListener('touchstart', (e) => {
+  const t = e.touches[0];
+  touchStartX = t.clientX;
+  touchStartY = t.clientY;
+}, { passive: true });
+
+drawer.addEventListener('touchmove', (e) => {
+  // nothing here, 仅记录以便 touchend 判断
+}, { passive: true });
+
+drawer.addEventListener('touchend', (e) => {
+  if (touchStartX === null) return;
+  const t = e.changedTouches[0];
+  const dx = t.clientX - touchStartX;
+  const dy = t.clientY - touchStartY;
+  // 如果主要水平移动且向右超过阈值，则关闭
+  if (Math.abs(dx) > 60 && Math.abs(dy) < 60 && dx > 0) {
+    closeDrawer();
+  }
+  touchStartX = null;
+  touchStartY = null;
+});
+
+/* ========== 用户列表：搜索 + 排序（防抖） ========== */
+function debounce(fn, wait = 250) {
+  let t = null;
+  return (...args) => {
+    clearTimeout(t);
+    t = setTimeout(() => fn(...args), wait);
+  };
+}
+
+function applyUserListFilteringAndSorting() {
+  const q = (userListSearch.value || '').trim().toLowerCase();
+  // Filter
+  userListView = userListData.filter(item => {
+    if (!q) return true;
+    // 检索 user_id / country_code / device / area / body 等字段
+    const hay = [
+      item.user_id, item.country_code, item.device, item.area,
+      item.device_detail, item.name, item.body
+    ].filter(Boolean).join(' ').toLowerCase();
+    return hay.indexOf(q) !== -1;
+  });
+
+  // Sort by log_time field (如果没有 log_time 用空字符串)
+  userListView.sort((a, b) => {
+    const ta = a.log_time ? new Date(a.log_time).getTime() : 0;
+    const tb = b.log_time ? new Date(b.log_time).getTime() : 0;
+    return userListSortAsc ? ta - tb : tb - ta;
+  });
+
+  // 更新排序按钮显示
+  userListSortBtn.textContent = `按时间 ${userListSortAsc ? '↑' : '↓'}`;
+
+  renderUserData(userListView, true);
+}
+
+const debouncedUserListFilter = debounce(applyUserListFilteringAndSorting, 180);
+userListSearch.addEventListener('input', debouncedUserListFilter);
+
+/* 排序按钮切换 */
+userListSortBtn.addEventListener('click', () => {
+  userListSortAsc = !userListSortAsc;
+  applyUserListFilteringAndSorting();
+});
+
+/* ========== 抽屉内搜索 + 排序 ========== */
+function applyDrawerFilteringAndSorting() {
+  const q = (drawerSearch.value || '').trim().toLowerCase();
+  singleUserView = singleUserData.filter(item => {
+    if (!q) return true;
+    const hay = [
+      item.name, item.device, item.device_detail, item.country_code,
+      item.area, item.body, item.log_time
+    ].filter(Boolean).join(' ').toLowerCase();
+    return hay.indexOf(q) !== -1;
+  });
+
+  singleUserView.sort((a, b) => {
+    const ta = a.log_time ? new Date(a.log_time).getTime() : 0;
+    const tb = b.log_time ? new Date(b.log_time).getTime() : 0;
+    return drawerSortAsc ? ta - tb : tb - ta;
+  });
+
+  drawerSortBtn.textContent = `按时间 ${drawerSortAsc ? '↑' : '↓'}`;
+
+  renderSingleUserView();
+}
+
+const debouncedDrawerFilter = debounce(applyDrawerFilteringAndSorting, 160);
+drawerSearch.addEventListener('input', debouncedDrawerFilter);
+drawerSortBtn.addEventListener('click', () => {
+  drawerSortAsc = !drawerSortAsc;
+  applyDrawerFilteringAndSorting();
+});
+
+/* ========== 清理 user list state helper ========== */
+function clearUserListState() {
+  userListData = [];
+  userListView = [];
+  userListSearch.value = '';
+  userListSortAsc = false;
+  userListControls.classList.add('hidden');
+}
+
+/* ========== 查询按钮主逻辑 ========== */
 document.getElementById('fetchBtn').addEventListener('click', async () => {
   if (!adminIdInput.value.trim()) { alert('请输入管理员ID'); return; }
 
@@ -257,17 +487,23 @@ document.getElementById('fetchBtn').addEventListener('click', async () => {
     const data = await res.json();
 
     if (action === 'userData') {
-      renderUserData(data, false);
+      // 渲染单用户（直接在主区显示最匹配的一条或多条），并不会打开抽屉
+      renderUserData(Array.isArray(data) ? data : [], false);
       if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
     } else if (action === 'userIds') {
-      renderUserData(data, true);
+      userListData = Array.isArray(data) ? data : [];
+      // 初始为降序（最近在前）
+      userListSortAsc = false;
+      userListSearch.value = '';
+      userListControls.classList.remove('hidden');
+      applyUserListFilteringAndSorting();
       if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
     } else if (action === 'retention') {
       renderUserData([]);
       const labels = data.map(item => item.date);
       const newUser = data.map(item => item.new_user_count);
       const retention = data.map(item => item.day1_retention);
-      const retentionRate = data.map(item => item.day1_rate * 100);
+      const retentionRate = data.map(item => (item.day1_rate || 0) * 100);
 
       if (chartInstance) chartInstance.destroy();
       chartInstance = new Chart(retentionChart, {
@@ -290,18 +526,29 @@ document.getElementById('fetchBtn').addEventListener('click', async () => {
           }
         }
       });
+      userListControls.classList.add('hidden');
+      userDataContainer.innerHTML = '';
     } else {
       renderUserData([]);
       if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
       userDataContainer.innerHTML = `<pre class="text-gray-700 text-sm">${JSON.stringify(data, null, 2)}</pre>`;
+      userListControls.classList.add('hidden');
     }
 
   } catch(err) {
     renderUserData([]);
     if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
     userDataContainer.innerHTML = `<p class="text-red-500">请求失败: ${err.message}</p>`;
+    userListControls.classList.add('hidden');
   }
 });
+
+/* ========== 初始化：确保 overlay 阻止背景滚动/点击穿透 ========== */
+overlay.addEventListener('touchmove', function(e) { e.preventDefault(); }, { passive: false });
+
+/* 最后：当用户点击页面中某个用户卡片（renderUserData 中绑定）时会走 fetchSingleUserData 并打开抽屉 */
+/* 其它逻辑如 chart 等保持原样。 */
+
 </script>
 
 </body>
