@@ -474,7 +474,7 @@ document.getElementById('fetchBtn').addEventListener('click', async () => {
   }
   if (action === 'userData' && !userIdVal) { alert('请输入用户ID'); return; }
 
-  const url = new URL('https://eventquery.chamanelephant.workers.dev/');
+  const url = new URL('https://analyze.yuanma.live/event');
   url.searchParams.append('action', action);
   url.searchParams.append('table', selectedApp.table);
   url.searchParams.append('adminId', adminIdInput.value.trim());
