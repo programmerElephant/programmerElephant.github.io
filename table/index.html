@@ -291,6 +291,7 @@ document.getElementById('fetchBtn').addEventListener('click', async()=>{
   if(endDateInput) url.searchParams.append('endDate',finalEndDate);
   if(action==='userData') url.searchParams.append('userId',userIdVal);
   if(action==='userIds') url.searchParams.append('country',countryVal);
+  if(action==='retention') url.searchParams.append('country',countryVal);
 
   try{
     const res = await fetch(url);
