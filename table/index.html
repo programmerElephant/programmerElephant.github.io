@@ -107,7 +107,6 @@
 
   <!-- overlay & 单用户抽屉 -->
   <div id="overlay" class="overlay"></div>
-
   <div id="userDrawer" class="drawer" role="dialog" aria-modal="true" aria-hidden="true">
     <span class="drawer-close" id="drawerClose" title="关闭">&times;</span>
     <div class="mb-4">
@@ -187,7 +186,7 @@ function vipStatusLabel(status) {
 }
 function formatDateStr(s){ return s||'-'; }
 
-/* ========== 渲染用户列表为表格 ========== */
+/* ========== 渲染用户列表 ========== */
 function renderUserData(data,isUserIdList=false){
   userDataContainer.innerHTML='';
   if(!data || data.length===0){
@@ -224,7 +223,7 @@ function renderUserData(data,isUserIdList=false){
     table.appendChild(tbody);
     userDataContainer.appendChild(table);
 
-    // 给按钮绑定事件
+    // 绑定抽屉打开事件
     userDataContainer.querySelectorAll('.open-user-btn').forEach(btn=>{
       btn.addEventListener('click',e=>{
         e.stopPropagation();
@@ -245,7 +244,7 @@ function renderUserData(data,isUserIdList=false){
   }
 }
 
-/* ========== 查询按钮逻辑（带国家参数和时间处理） ========== */
+/* ========== 查询按钮逻辑 ========== */
 document.getElementById('fetchBtn').addEventListener('click', async()=>{
   if(!adminIdInput.value.trim()){ alert('请输入管理员ID'); return; }
   const startDateInput=document.getElementById('startDate').value;
@@ -257,7 +256,6 @@ document.getElementById('fetchBtn').addEventListener('click', async()=>{
   if((action==='retention'||action==='userIds'||action==='vipCount') && (!startDateInput||!endDateInput)){ alert('请选择开始和结束日期'); return; }
   if(action==='userData' && !userIdVal){ alert('请输入用户ID'); return; }
 
-  // ======== 根据国家处理时间 ========
   function formatDateWithTime(dateObj){
     const y = dateObj.getFullYear();
     const m = String(dateObj.getMonth()+1).padStart(2,'0');
@@ -272,24 +270,18 @@ document.getElementById('fetchBtn').addEventListener('click', async()=>{
   let endDate = new Date(endDateInput);
 
   if(countryVal === '0'){ // 土耳其
-      startDate.setHours(0 + 5, 0, 0, 0);
-      endDate.setHours(23 + 5, 59, 59, 999);
-  } else if (countryVal === '1') {
-      //阿拉伯
-      startDate.setHours(0 + 5, 0, 0, 0);
-      endDate.setHours(23 + 5, 59, 59, 999);
+      startDate.setHours(5,0,0,0);
+      endDate.setHours(28,59,59,999);
+  } else if (countryVal === '1') { // 阿拉伯
+      startDate.setHours(5,0,0,0);
+      endDate.setHours(28,59,59,999);
+  } else { // 中国/全部/其他
+      startDate.setHours(0,0,0,0);
+      endDate.setHours(23,59,59,999);
   }
-  else { // 中国/全部/其他
-      startDate.setHours(0, 0, 0, 0);
-      endDate.setHours(23, 59, 59, 999);
-  }
-
 
   const finalStartDate = formatDateWithTime(startDate);
   const finalEndDate = formatDateWithTime(endDate);
-  
-  console.log(finalStartDate)
-  console.log(finalEndDate)
 
   const url=new URL('https://analyze.yuanma.live/event');
   url.searchParams.append('action',action);
@@ -328,76 +320,117 @@ document.getElementById('fetchBtn').addEventListener('click', async()=>{
       });
     } else if(action==='userData'){
       singleUserData=Array.isArray(data)?data:[];
-      singleUserView=[...singleUserData];
+      singleUserView=singleUserData.slice();
       renderDrawerContent(singleUserView);
       openDrawer();
     } else if(action==='vipCount'){
-      userDataContainer.innerHTML='<pre class="p-4 bg-gray-100 rounded-xl">'+JSON.stringify(data,null,2)+'</pre>';
+      userDataContainer.innerHTML=`<p class="text-center text-gray-700 text-lg">VIP人数: <span class="font-bold text-green-600">${data.count||0}</span></p>`;
     }
   }catch(e){
-    console.error(e);
-    alert('请求失败，请检查控制台');
+    alert('请求失败：'+e);
   }
 });
 
-/* ========== 用户列表搜索/排序 ========== */
-function applyUserListFilteringAndSorting(){
-  const searchText = userListSearch.value.trim().toLowerCase();
-  userListView = userListData.filter(u=>{
-    return !searchText || [u.user_id,u.country_code,u.device,u.device_detail].some(v=>v?.toString().toLowerCase().includes(searchText));
-  });
-  userListView.sort((a,b)=>{
-    const tA=new Date(a.create_time).getTime();
-    const tB=new Date(b.create_time).getTime();
-    return userListSortAsc? tA-tB : tB-tA;
-  });
-  renderUserData(userListView,true);
-}
-userListSearch.addEventListener('input',applyUserListFilteringAndSorting);
-userListSortBtn.addEventListener('click',()=>{
-  userListSortAsc=!userListSortAsc;
-  applyUserListFilteringAndSorting();
-});
-
-/* ========== 单用户抽屉 ========== */
-function fetchSingleUserData(userId){
-  document.getElementById('action').value='userData';
-  userIdInput.value=userId;
-  document.getElementById('fetchBtn').click();
-}
+/* ========== 抽屉逻辑 ========== */
 function renderDrawerContent(data){
   drawerContent.innerHTML='';
   if(!data || data.length===0){ drawerContent.innerHTML='<p class="text-gray-500">没有日志数据</p>'; return; }
   const table = document.createElement('table');
   table.className='min-w-full border border-gray-200 text-sm';
   const thead = document.createElement('thead');
-  thead.innerHTML='<tr class="bg-gray-100"><th class="p-2 border">时间</th><th class="p-2 border">事件</th><th class="p-2 border">内容</th></tr>';
+  thead.innerHTML='<tr class="bg-gray-100"><th class="p-2 border">时间</th><th class="p-2 border">事件</th><th class="p-2 border">详情</th></tr>';
   table.appendChild(thead);
   const tbody = document.createElement('tbody');
   data.forEach(item=>{
     const tr=document.createElement('tr');
     tr.className='hover:bg-gray-50';
-    tr.innerHTML=`<td class="p-2 border">${item.time||'-'}</td><td class="p-2 border">${item.event||'-'}</td><td class="p-2 border">${item.detail||'-'}</td>`;
+    tr.innerHTML=`
+      <td class="p-2 border">${item.log_time||'-'}</td>
+      <td class="p-2 border">${item.name||'-'}</td>
+      <td class="p-2 border">
+        ${item.body||''}<br>
+        IP: ${item.ip||'-'}<br>
+        设备: ${item.device||'-'}<br>
+        地区: ${item.area||'-'}<br>
+        VIP: ${item.vip_status||0}
+      </td>
+    `;
     tbody.appendChild(tr);
   });
   table.appendChild(tbody);
   drawerContent.appendChild(table);
 }
-function openDrawer(){ drawer.classList.add('open'); overlay.classList.add('show'); }
-function closeDrawer(){ drawer.classList.remove('open'); overlay.classList.remove('show'); }
-drawerClose.addEventListener('click',closeDrawer);
-overlay.addEventListener('click',closeDrawer);
 
-/* ========== 用户列表状态清理 ========== */
-function clearUserListState(){ userListData=[]; userListView=[]; userDataContainer.innerHTML=''; userListControls.classList.add('hidden'); }
+function openDrawer(){ drawer.classList.add('open'); overlay.classList.add('show'); drawer.setAttribute('aria-hidden','false'); }
+function closeDrawer(){ drawer.classList.remove('open'); overlay.classList.remove('show'); drawer.setAttribute('aria-hidden','true'); }
+drawerClose.addEventListener('click', closeDrawer);
+overlay.addEventListener('click', closeDrawer);
 
-/* ========== 抽屉触控事件支持 ========== */
-drawer.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].clientX; touchStartY = e.changedTouches[0].clientY; });
-drawer.addEventListener('touchend', e => {
-  const dx = e.changedTouches[0].clientX - touchStartX;
-  const dy = e.changedTouches[0].clientY - touchStartY;
-  if(Math.abs(dx) > 80 && Math.abs(dy) < 40 && dx > 0){ closeDrawer(); }
+/* ========== 单用户数据模拟请求 ========== */
+async function fetchSingleUserData(userId){
+  try{
+    const url=new URL('https://analyze.yuanma.live/event');
+    url.searchParams.append('action','userData');
+    url.searchParams.append('table',selectedApp.table);
+    url.searchParams.append('adminId',adminIdInput.value.trim());
+    url.searchParams.append('userId',userId);
+    const res=await fetch(url);
+    const data=await res.json();
+    singleUserData=Array.isArray(data)?data:[];
+    singleUserView=singleUserData.slice();
+    renderDrawerContent(singleUserView);
+    openDrawer();
+  }catch(e){
+    alert('请求单用户数据失败：'+e);
+  }
+}
+
+/* ========== 用户列表搜索/排序 ========== */
+function applyUserListFilteringAndSorting(){
+  let filtered = userListData.filter(item=>{
+    const kw = userListSearch.value.trim().toLowerCase();
+    return kw===''
+      || (item.user_id||'').toLowerCase().includes(kw)
+      || (item.country_code||'').toLowerCase().includes(kw)
+      || (item.device||'').toLowerCase().includes(kw);
+  });
+  filtered.sort((a,b)=>{
+    const t1 = new Date(a.log_time||0).getTime();
+    const t2 = new Date(b.log_time||0).getTime();
+    return userListSortAsc ? t1-t2 : t2-t1;
+  });
+  renderUserData(filtered,true);
+}
+
+userListSearch.addEventListener('input', applyUserListFilteringAndSorting);
+userListSortBtn.addEventListener('click',()=>{
+  userListSortAsc=!userListSortAsc;
+  userListSortBtn.textContent = '按时间 ' + (userListSortAsc?'↑':'↓');
+  applyUserListFilteringAndSorting();
 });
+
+/* ========== 抽屉搜索/排序 ========== */
+drawerSearch.addEventListener('input', ()=>{
+  let kw = drawerSearch.value.trim().toLowerCase();
+  singleUserView = singleUserData.filter(item=>{
+    return kw==='' || (item.name||'').toLowerCase().includes(kw) || (item.body||'').toLowerCase().includes(kw);
+  });
+  renderDrawerContent(singleUserView);
+});
+drawerSortBtn.addEventListener('click', ()=>{
+  drawerSortAsc=!drawerSortAsc;
+  drawerSortBtn.textContent='按时间 ' + (drawerSortAsc?'↑':'↓');
+  singleUserView.sort((a,b)=>{
+    const t1=new Date(a.log_time||0).getTime();
+    const t2=new Date(b.log_time||0).getTime();
+    return drawerSortAsc?t1-t2:t2-t1;
+  });
+  renderDrawerContent(singleUserView);
+});
+
+/* ========== 清空列表状态 ========== */
+function clearUserListState(){ userDataContainer.innerHTML=''; userListData=[]; userListView=[]; singleUserData=[]; singleUserView=[]; }
 </script>
+
 </body>
 </html>
