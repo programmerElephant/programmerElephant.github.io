@@ -256,8 +256,6 @@
 
 
 <script>
-/*** 逻辑保持不变，只修改 UI 事件绑定 ***/
-
 let selectedApp = {name:"VPN Proxy", table:"vpnproxy"};
 let selectedCountry = "";
 let selectedAction = "userIds"; // 默认改为用户列表
@@ -271,8 +269,13 @@ let userStats = {
   userIds: [], // 用户列表 (用于主表)
 };
 
+// 🌟 新增：抽屉数据和排序状态
+let currentDrawerData = [];
+let sortOrder = 'desc'; // 'desc' 降序 (时间新到旧), 'asc' 升序 (时间旧到新)
+
 const startDateInput = document.getElementById("startDate");
 const endDateInput = document.getElementById("endDate");
+const drawerSortBtn = document.getElementById("drawerSortBtn");
 
 function setToday() {
   const t=new Date();
@@ -380,9 +383,17 @@ document.getElementById("fetchBtn").onclick = async ()=>{
   renderResult(await res.json());
 };
 
-// 新增：批量获取统计数据
+// 🌟 修改：批量获取统计数据，添加 name 参数
 async function fetchStats(adminId) {
-    const actions = ["install", "buy", "cancel", "refund", "userIds"];
+    // 🌟 新增 action-name 映射
+    const actionMap = {
+        "install": "install",
+        "buy": "subscribe_page_success,guide_start_success", // 多个用逗号分隔
+        "cancel": "cancel",
+        "refund": "refund",
+        "userIds": null // 用户列表不需要 name
+    };
+    const actions = Object.keys(actionMap);
     const country = selectedCountry;
     const table = selectedApp.table;
     const startDate = startDateInput.value + " 00:00:00";
@@ -398,6 +409,12 @@ async function fetchStats(adminId) {
         if(action !== 'userData') {
           url.searchParams.append("country", country);
         }
+
+        // 🌟 添加 name 参数
+        if(actionMap[action]) {
+             url.searchParams.append("name", actionMap[action]);
+        }
+
         return fetch(url).then(res => res.json()).then(data => ({ action, data }));
     });
 
@@ -495,31 +512,75 @@ const drawer=document.getElementById("userDrawer");
 document.getElementById("drawerClose").onclick=closeDrawer;
 overlay.onclick=closeDrawer;
 
-function closeDrawer(){drawer.classList.remove("open"); overlay.classList.remove("show");}
+// 🌟 新增：绑定抽屉排序按钮事件
+drawerSortBtn.onclick = sortDrawerData;
 
-// 单用户数据详情抽屉
+
+function closeDrawer(){
+    drawer.classList.remove("open");
+    overlay.classList.remove("show");
+}
+
+// 🌟 新增：抽屉数据排序逻辑
+function sortDrawerData() {
+    if (currentDrawerData.length === 0) return;
+
+    // 切换排序状态
+    sortOrder = sortOrder === 'desc' ? 'asc' : 'desc';
+
+    // 排序数据：使用 log_time 进行比较
+    currentDrawerData.sort((a, b) => {
+        const dateA = new Date(a.log_time);
+        const dateB = new Date(b.log_time);
+        return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
+    });
+
+    // 更新按钮显示
+    drawerSortBtn.textContent = sortOrder === 'desc' ? '按时间 ↓' : '按时间 ↑';
+
+    // 重新渲染抽屉内容
+    renderDrawerContent(currentDrawerData);
+}
+
+// 🌟 提取：渲染抽屉内容的通用函数
+function renderDrawerContent(list) {
+    const box = document.getElementById("drawerContent");
+    let html=`<table class="ant-table"><thead><tr>
+        <th>时间</th><th>事件</th><th>详情</th></tr></thead><tbody>`;
+    list.forEach(d=>{
+        html+=`<tr><td>${d.log_time}</td><td>${d.name}</td>
+            <td>IP:${d.ip}<br>设备:${d.device}<br>地区:${d.area}<br>VIP:${d.vip_status}<br>${d.body}</td></tr>`;
+    });
+    html+="</tbody></table>";
+    box.innerHTML=html;
+}
+
+
+// 单用户数据详情抽屉 (修改：存储数据并调用通用渲染)
 function openDrawerWithData(list){
-  document.getElementById("drawerTitle").textContent = "用户详情";
-  document.getElementById("drawerControls").classList.remove("hidden"); // 显示搜索/排序
+    document.getElementById("drawerTitle").textContent = "用户详情";
+    document.getElementById("drawerControls").classList.remove("hidden"); // 显示搜索/排序
 
-  const box=document.getElementById("drawerContent");
-  let html=`<table class="ant-table"><thead><tr>
-    <th>时间</th><th>事件</th><th>详情</th></tr></thead><tbody>`;
-  list.forEach(d=>{
-    html+=`<tr><td>${d.log_time}</td><td>${d.name}</td>
-      <td>IP:${d.ip}<br>设备:${d.device}<br>地区:${d.area}<br>VIP:${d.vip_status}<br>${d.body}</td></tr>`;
-  });
-  html+="</tbody></table>";
-  box.innerHTML=html;
+    // 🌟 存储数据和重置排序状态
+    currentDrawerData = list;
+    sortOrder = 'desc'; // 默认降序
+    drawerSortBtn.textContent = '按时间 ↓';
 
-  drawer.classList.add("open");
-  overlay.classList.add("show");
+    // 🌟 默认排序并渲染
+    currentDrawerData.sort((a, b) => new Date(b.log_time) - new Date(a.log_time));
+    renderDrawerContent(currentDrawerData);
+
+    drawer.classList.add("open");
+    overlay.classList.add("show");
 }
 
 // 统计用户列表抽屉
 function openDrawerWithUserIds(list, title) {
     document.getElementById("drawerTitle").textContent = title;
     document.getElementById("drawerControls").classList.add("hidden"); // 隐藏搜索/排序
+
+    // 🌟 清空数据缓存，避免混淆
+    currentDrawerData = [];
 
     const box = document.getElementById("drawerContent");
     let html = `<table class="ant-table"><thead><tr><th>UserID</th></tr></thead><tbody>`;
