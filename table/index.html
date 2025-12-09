@@ -269,13 +269,57 @@ let userStats = {
   userIds: [], // 用户列表 (用于主表)
 };
 
-// 🌟 新增：抽屉数据和排序状态
+// 抽屉数据和排序状态
 let currentDrawerData = [];
 let sortOrder = 'desc'; // 'desc' 降序 (时间新到旧), 'asc' 升序 (时间旧到新)
 
 const startDateInput = document.getElementById("startDate");
 const endDateInput = document.getElementById("endDate");
 const drawerSortBtn = document.getElementById("drawerSortBtn");
+
+
+// 🌟 新增：根据国家调整日期时间边界的函数
+function getAdjustedDateRange(startDateStr, endDateStr, country) {
+
+    // Helper to format Date object into YYYY-MM-DD HH:MM:SS string
+    const formatDateTime = (date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        const seconds = String(date.getSeconds()).padStart(2, '0');
+        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    };
+
+    let start = new Date(startDateStr);
+    let end = new Date(endDateStr);
+    
+    // 土耳其 (0) 或 阿拉伯 (1)
+    if (country === "0" || country === "1") {
+        // 1. 处理 Start Date: 当天 5:00:00
+        start.setHours(5, 0, 0, 0);
+
+        // 2. 处理 End Date: 选定日期的第二天 4:59:59
+        // 步骤 a: 先将日期设置为结束日期 (用户输入)，并确保时间是 00:00:00
+        end.setHours(0, 0, 0, 0);
+        // 步骤 b: 增加一天
+        end.setDate(end.getDate() + 1);
+        // 步骤 c: 设置时间到 4:59:59
+        end.setHours(4, 59, 59, 0);
+
+    } else {
+        // 中国 ("3") 或 全部 ("")：当天 00:00:00 到 23:59:59
+        start.setHours(0, 0, 0, 0);
+        end.setHours(23, 59, 59, 0);
+    }
+
+    return {
+        startDateTime: formatDateTime(start),
+        endDateTime: formatDateTime(end)
+    };
+}
+
 
 function setToday() {
   const t=new Date();
@@ -357,21 +401,31 @@ document.getElementById("fetchBtn").onclick = async ()=>{
   const admin=document.getElementById("adminId").value.trim();
   if(!admin) return alert("请输入管理员ID");
 
+  // 🌟 获取调整后的时间范围
+  const { startDateTime, endDateTime } = getAdjustedDateRange(startDateInput.value, endDateInput.value, selectedCountry);
+  
+  
+  console.log(startDateTime)
+  console.log(endDateTime)
+
   if(selectedAction==="userIds"){
       // 批量请求统计数据
-      await fetchStats(admin);
+      await fetchStats(admin, startDateTime, endDateTime); // 传递调整后的时间
       // 渲染用户列表
       renderUserList(userStats.userIds);
       return;
   }
+  
 
   // 其他 action 的原有逻辑
   const url=new URL("https://analyze.yuanma.live/event");
   url.searchParams.append("table",selectedApp.table);
   url.searchParams.append("action",selectedAction);
   url.searchParams.append("adminId",admin);
-  url.searchParams.append("startDate",startDateInput.value+" 00:00:00");
-  url.searchParams.append("endDate",endDateInput.value+" 23:59:59");
+  
+  // 🌟 使用调整后的时间
+  url.searchParams.append("startDate", startDateTime);
+  url.searchParams.append("endDate", endDateTime);
 
   if(selectedAction==="retention"||selectedAction==="userIds")
     url.searchParams.append("country",selectedCountry);
@@ -383,12 +437,12 @@ document.getElementById("fetchBtn").onclick = async ()=>{
   renderResult(await res.json());
 };
 
-// 🌟 修改：批量获取统计数据，添加 name 参数
-async function fetchStats(adminId) {
-    // 🌟 新增 action-name 映射
+// 🌟 修改：批量获取统计数据，现在接受调整后的时间
+async function fetchStats(adminId, startDateTime, endDateTime) {
+    // 新增 action-name 映射
     const actionMap = {
         "install": "install",
-        "buy": "subscribe_page_success,guide_start_success", // 多个用逗号分隔
+        "buy": "subscribe_page_success,guide_start_success",
         "cancel": "cancel",
         "refund": "refund",
         "userIds": null // 用户列表不需要 name
@@ -396,21 +450,22 @@ async function fetchStats(adminId) {
     const actions = Object.keys(actionMap);
     const country = selectedCountry;
     const table = selectedApp.table;
-    const startDate = startDateInput.value + " 00:00:00";
-    const endDate = endDateInput.value + " 23:59:59";
 
     const promises = actions.map(action => {
         const url = new URL("https://analyze.yuanma.live/event");
         url.searchParams.append("table", table);
         url.searchParams.append("action", action);
         url.searchParams.append("adminId", adminId);
-        url.searchParams.append("startDate", startDate);
-        url.searchParams.append("endDate", endDate);
+        
+        // 🌟 使用传入的调整后的时间
+        url.searchParams.append("startDate", startDateTime);
+        url.searchParams.append("endDate", endDateTime);
+        
         if(action !== 'userData') {
           url.searchParams.append("country", country);
         }
 
-        // 🌟 添加 name 参数
+        // 添加 name 参数
         if(actionMap[action]) {
              url.searchParams.append("name", actionMap[action]);
         }
@@ -427,7 +482,7 @@ async function fetchStats(adminId) {
     updateStatsDisplay();
 }
 
-// 新增：更新统计数据显示
+// 更新统计数据显示
 function updateStatsDisplay() {
     const installCount = userStats.install.length;
     const buyCount = userStats.buy.length;
@@ -471,7 +526,7 @@ function renderResult(data){
     return;
   }
 
-  if(selectedAction==="userIds"){ renderUserList(data); return; } // 此处理论上不会执行，因为 fetchBtn 中已经处理了 stats/list 的同步请求
+  if(selectedAction==="userIds"){ renderUserList(data); return; }
   if(selectedAction==="userData"){ openDrawerWithData(data); return; }
 }
 
@@ -512,7 +567,7 @@ const drawer=document.getElementById("userDrawer");
 document.getElementById("drawerClose").onclick=closeDrawer;
 overlay.onclick=closeDrawer;
 
-// 🌟 新增：绑定抽屉排序按钮事件
+// 绑定抽屉排序按钮事件
 drawerSortBtn.onclick = sortDrawerData;
 
 
@@ -521,7 +576,7 @@ function closeDrawer(){
     overlay.classList.remove("show");
 }
 
-// 🌟 新增：抽屉数据排序逻辑
+// 抽屉数据排序逻辑
 function sortDrawerData() {
     if (currentDrawerData.length === 0) return;
 
@@ -542,7 +597,7 @@ function sortDrawerData() {
     renderDrawerContent(currentDrawerData);
 }
 
-// 🌟 提取：渲染抽屉内容的通用函数
+// 渲染抽屉内容的通用函数
 function renderDrawerContent(list) {
     const box = document.getElementById("drawerContent");
     let html=`<table class="ant-table"><thead><tr>
@@ -561,12 +616,12 @@ function openDrawerWithData(list){
     document.getElementById("drawerTitle").textContent = "用户详情";
     document.getElementById("drawerControls").classList.remove("hidden"); // 显示搜索/排序
 
-    // 🌟 存储数据和重置排序状态
+    // 存储数据和重置排序状态
     currentDrawerData = list;
     sortOrder = 'desc'; // 默认降序
     drawerSortBtn.textContent = '按时间 ↓';
 
-    // 🌟 默认排序并渲染
+    // 默认排序并渲染
     currentDrawerData.sort((a, b) => new Date(b.log_time) - new Date(a.log_time));
     renderDrawerContent(currentDrawerData);
 
@@ -579,12 +634,13 @@ function openDrawerWithUserIds(list, title) {
     document.getElementById("drawerTitle").textContent = title;
     document.getElementById("drawerControls").classList.add("hidden"); // 隐藏搜索/排序
 
-    // 🌟 清空数据缓存，避免混淆
+    // 清空数据缓存，避免混淆
     currentDrawerData = [];
 
     const box = document.getElementById("drawerContent");
     let html = `<table class="ant-table"><thead><tr><th>UserID</th></tr></thead><tbody>`;
     list.forEach(d => {
+        // 由于这个列表只有 user_id，所以直接渲染
         html += `<tr><td>${d.user_id}</td></tr>`;
     });
     html += "</tbody></table>";
