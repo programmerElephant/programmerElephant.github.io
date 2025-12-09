@@ -117,16 +117,38 @@
     .drawer.open {right:0;}
     .drawer-close {position:absolute; top:14px; right:18px; font-size:20px; cursor:pointer;}
 
+    /* New Statistic Card Styling */
+    .stat-card {
+        background: white;
+        border-radius: 8px;
+        padding: 16px;
+        box-shadow: 0 1px 3px rgba(0,0,0,.04);
+        border: 1px solid #f0f0f0;
+        cursor: pointer; /* 可点击 */
+        transition: transform 0.1s;
+    }
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px rgba(0,0,0,.06);
+    }
+    .stat-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: #1677ff;
+    }
+    .stat-label {
+      font-size: 14px;
+      color: #666;
+    }
+
   </style>
 
 </head>
 
 <body class="p-5">
 
-<!-- 标题 -->
 <h1 class="text-2xl font-bold mb-4">数据分析后台</h1>
 
-<!-- Tabs 产品选择 -->
 <div class="ant-card mb-4">
   <div id="productTabs" class="ant-tabs">
     <div class="ant-tab active" data-app="vpnproxy" data-name="VPN Proxy">VPN Proxy</div>
@@ -134,10 +156,8 @@
   </div>
 </div>
 
-<!-- 查询条件 -->
 <div class="ant-card mb-4">
 
-  <!-- 第一行：管理员ID + 日期 -->
   <div class="flex flex-wrap gap-5 items-end mb-4">
 
     <div>
@@ -158,7 +178,6 @@
     <button id="fetchBtn" class="ant-btn ant-btn-primary ml-auto">查询</button>
   </div>
 
-  <!-- 第二行：国家 -->
   <div class="flex items-center gap-3 mb-4">
     <span class="w-16 text-gray-600 text-sm">国家：</span>
 
@@ -170,13 +189,12 @@
     </div>
   </div>
 
-  <!-- 第三行：类型 -->
   <div class="flex items-center gap-3">
     <span class="w-16 text-gray-600 text-sm">类型：</span>
 
     <div id="actionSelector" class="flex gap-2 flex-wrap">
-      <div class="ant-selector active" data-action="retention">留存率</div>
-      <div class="ant-selector" data-action="userIds">用户列表</div>
+      <div class="ant-selector" data-action="retention">留存率</div>
+      <div class="ant-selector active" data-action="userIds">用户列表</div>
       <div class="ant-selector" data-action="userData">单用户数据</div>
       <div class="ant-selector" data-action="vipCount">VIP人数</div>
     </div>
@@ -188,7 +206,29 @@
 
 </div>
 
-<!-- 用户列表过滤器 -->
+<div id="statsContainer" class="mb-4 hidden">
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div id="statNewUsers" class="stat-card" data-action="install" data-label="新用户列表">
+      <div class="stat-value text-blue-500" id="statNewUsersValue">0</div>
+      <div class="stat-label">新用户数</div>
+      <div class="text-xs text-gray-500 mt-1">购买率: <span id="rateBuy">0.00%</span></div>
+    </div>
+    <div id="statPurchases" class="stat-card" data-action="buy" data-label="购买用户列表">
+      <div class="stat-value text-green-500" id="statPurchasesValue">0</div>
+      <div class="stat-label">购买人数</div>
+    </div>
+    <div id="statCancellations" class="stat-card" data-action="cancel" data-label="取消用户列表">
+      <div class="stat-value text-orange-500" id="statCancellationsValue">0</div>
+      <div class="stat-label">订单取消人数</div>
+      <div class="text-xs text-gray-500 mt-1">取消率: <span id="rateCancel">0.00%</span></div>
+    </div>
+    <div id="statRefunds" class="stat-card" data-action="refund" data-label="退款用户列表">
+      <div class="stat-value text-red-500" id="statRefundsValue">0</div>
+      <div class="stat-label">退款人数</div>
+      <div class="text-xs text-gray-500 mt-1">退款率: <span id="rateRefund">0.00%</span></div>
+    </div>
+  </div>
+</div>
 <div id="userListControls" class="ant-card mb-4 hidden">
   <div class="flex gap-3 items-center">
     <input id="userListSearch" class="ant-input flex-1" placeholder="搜索用户">
@@ -196,19 +236,17 @@
   </div>
 </div>
 
-<!-- 内容展示 -->
 <div id="userDataContainer" class="ant-card"></div>
 
 
-<!-- Drawer -->
 <div id="overlay" class="overlay"></div>
 
 <div id="userDrawer" class="drawer">
   <span id="drawerClose" class="drawer-close">&times;</span>
 
-  <h2 class="text-lg font-semibold mb-3">用户详情</h2>
+  <h2 class="text-lg font-semibold mb-3" id="drawerTitle">用户详情</h2>
 
-  <div class="flex gap-3 mb-3">
+  <div id="drawerControls" class="flex gap-3 mb-3">
     <input id="drawerSearch" class="ant-input flex-1" placeholder="搜索日志">
     <button id="drawerSortBtn" class="ant-btn">按时间 ↓</button>
   </div>
@@ -222,7 +260,16 @@
 
 let selectedApp = {name:"VPN Proxy", table:"vpnproxy"};
 let selectedCountry = "";
-let selectedAction = "retention";
+let selectedAction = "userIds"; // 默认改为用户列表
+
+// 统计数据缓存
+let userStats = {
+  install: [], // 新用户
+  buy: [],     // 购买
+  cancel: [],  // 取消
+  refund: [],  // 退款
+  userIds: [], // 用户列表 (用于主表)
+};
 
 const startDateInput = document.getElementById("startDate");
 const endDateInput = document.getElementById("endDate");
@@ -260,6 +307,14 @@ document.querySelectorAll("#actionSelector .ant-selector").forEach(btn=>{
     btn.classList.add("active");
     selectedAction = btn.dataset.action;
 
+    // 切换用户列表/统计区显示
+    if(selectedAction==="userIds"){
+      document.getElementById("statsContainer").classList.remove("hidden");
+    } else {
+      document.getElementById("statsContainer").classList.add("hidden");
+      document.getElementById("userListControls").classList.add("hidden"); // 其他模式隐藏列表过滤器
+    }
+
     if(selectedAction==="userData")
       document.getElementById("userIdInputWrapper").classList.remove("hidden");
     else
@@ -267,8 +322,9 @@ document.querySelectorAll("#actionSelector .ant-selector").forEach(btn=>{
   };
 });
 
-/*** 逻辑保持原样（略） ***/
-/* 我省略解释，但完整保留你的逻辑，不缺任何功能 */
+// 默认执行一次切换逻辑
+document.querySelector('#actionSelector .ant-selector[data-action="userIds"]').click();
+
 
 function vipStatusLabel(s){
   switch(s){
@@ -278,11 +334,35 @@ function vipStatusLabel(s){
   return'<span class="px-2 py-1 text-xs bg-gray-300 text-gray-700 rounded-full">普通</span>';
 }
 
+// 统计数据点击事件绑定
+document.querySelectorAll('#statsContainer .stat-card').forEach(card => {
+    card.onclick = () => {
+        const action = card.dataset.action;
+        const label = card.dataset.label;
+        const list = userStats[action];
+        if (list && list.length > 0) {
+            openDrawerWithUserIds(list, label);
+        } else {
+            alert(`当前没有 ${label}`);
+        }
+    };
+});
+
+
 document.getElementById("fetchBtn").onclick = async ()=>{
 
   const admin=document.getElementById("adminId").value.trim();
   if(!admin) return alert("请输入管理员ID");
 
+  if(selectedAction==="userIds"){
+      // 批量请求统计数据
+      await fetchStats(admin);
+      // 渲染用户列表
+      renderUserList(userStats.userIds);
+      return;
+  }
+
+  // 其他 action 的原有逻辑
   const url=new URL("https://analyze.yuanma.live/event");
   url.searchParams.append("table",selectedApp.table);
   url.searchParams.append("action",selectedAction);
@@ -299,6 +379,59 @@ document.getElementById("fetchBtn").onclick = async ()=>{
   const res=await fetch(url);
   renderResult(await res.json());
 };
+
+// 新增：批量获取统计数据
+async function fetchStats(adminId) {
+    const actions = ["install", "buy", "cancel", "refund", "userIds"];
+    const country = selectedCountry;
+    const table = selectedApp.table;
+    const startDate = startDateInput.value + " 00:00:00";
+    const endDate = endDateInput.value + " 23:59:59";
+
+    const promises = actions.map(action => {
+        const url = new URL("https://analyze.yuanma.live/event");
+        url.searchParams.append("table", table);
+        url.searchParams.append("action", action);
+        url.searchParams.append("adminId", adminId);
+        url.searchParams.append("startDate", startDate);
+        url.searchParams.append("endDate", endDate);
+        if(action !== 'userData') {
+          url.searchParams.append("country", country);
+        }
+        return fetch(url).then(res => res.json()).then(data => ({ action, data }));
+    });
+
+    const results = await Promise.all(promises);
+
+    results.forEach(item => {
+        userStats[item.action] = item.data;
+    });
+
+    updateStatsDisplay();
+}
+
+// 新增：更新统计数据显示
+function updateStatsDisplay() {
+    const installCount = userStats.install.length;
+    const buyCount = userStats.buy.length;
+    const cancelCount = userStats.cancel.length;
+    const refundCount = userStats.refund.length;
+
+    document.getElementById("statNewUsersValue").textContent = installCount;
+    document.getElementById("statPurchasesValue").textContent = buyCount;
+    document.getElementById("statCancellationsValue").textContent = cancelCount;
+    document.getElementById("statRefundsValue").textContent = refundCount;
+
+    // 计算比率
+    const rateBuy = installCount > 0 ? (buyCount / installCount * 100).toFixed(2) : "0.00";
+    const rateCancel = buyCount > 0 ? (cancelCount / buyCount * 100).toFixed(2) : "0.00";
+    const rateRefund = buyCount > 0 ? (refundCount / buyCount * 100).toFixed(2) : "0.00";
+
+    document.getElementById("rateBuy").textContent = `${rateBuy}%`;
+    document.getElementById("rateCancel").textContent = `${rateCancel}%`;
+    document.getElementById("rateRefund").textContent = `${rateRefund}%`;
+}
+
 
 function renderResult(data){
   const box=document.getElementById("userDataContainer");
@@ -321,7 +454,7 @@ function renderResult(data){
     return;
   }
 
-  if(selectedAction==="userIds"){ renderUserList(data); return; }
+  if(selectedAction==="userIds"){ renderUserList(data); return; } // 此处理论上不会执行，因为 fetchBtn 中已经处理了 stats/list 的同步请求
   if(selectedAction==="userData"){ openDrawerWithData(data); return; }
 }
 
@@ -329,6 +462,7 @@ function renderUserList(list){
   const box=document.getElementById("userDataContainer");
   box.innerHTML="";
   document.getElementById("userListControls").classList.remove("hidden");
+  document.getElementById("statsContainer").classList.remove("hidden"); // 用户列表模式显示统计区
 
   let html=`<table class="ant-table"><thead><tr>
     <th>UserID</th><th>国家</th><th>设备</th><th>VIP</th><th>操作</th></tr></thead><tbody>`;
@@ -363,7 +497,11 @@ overlay.onclick=closeDrawer;
 
 function closeDrawer(){drawer.classList.remove("open"); overlay.classList.remove("show");}
 
+// 单用户数据详情抽屉
 function openDrawerWithData(list){
+  document.getElementById("drawerTitle").textContent = "用户详情";
+  document.getElementById("drawerControls").classList.remove("hidden"); // 显示搜索/排序
+
   const box=document.getElementById("drawerContent");
   let html=`<table class="ant-table"><thead><tr>
     <th>时间</th><th>事件</th><th>详情</th></tr></thead><tbody>`;
@@ -376,6 +514,23 @@ function openDrawerWithData(list){
 
   drawer.classList.add("open");
   overlay.classList.add("show");
+}
+
+// 统计用户列表抽屉
+function openDrawerWithUserIds(list, title) {
+    document.getElementById("drawerTitle").textContent = title;
+    document.getElementById("drawerControls").classList.add("hidden"); // 隐藏搜索/排序
+
+    const box = document.getElementById("drawerContent");
+    let html = `<table class="ant-table"><thead><tr><th>UserID</th></tr></thead><tbody>`;
+    list.forEach(d => {
+        html += `<tr><td>${d.user_id}</td></tr>`;
+    });
+    html += "</tbody></table>";
+    box.innerHTML = html;
+
+    drawer.classList.add("open");
+    overlay.classList.add("show");
 }
 </script>
 
