@@ -521,8 +521,9 @@ function updateStatsDisplay() {
     const buyCount = userStats.buy.length;
     const cancelCount = userStats.cancel.length;
     const refundCount = userStats.refund.length;
+    const userCount = userStats.userIds.length;
 
-    document.getElementById("statNewUsersValue").textContent = installCount;
+    document.getElementById("statNewUsersValue").textContent = `${installCount}/${userCount}`;
     document.getElementById("statPurchasesValue").textContent = buyCount;
     document.getElementById("statCancellationsValue").textContent = cancelCount;
     document.getElementById("statRefundsValue").textContent = refundCount;
