@@ -1,108 +1,256 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>隐私政策 - 灵语</title>
   <style>
-  * {
-    box-sizing: border-box;
-  }
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: transparent;
-    color: #333;
-    line-height: 1.6;
-    font-size: 16px;
-  }
-  .container {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 24px;
-  }
-  h1 {
-    text-align: center;
-    color: #222;
-    font-size: 1.8em;
-    margin-bottom: 1em;
-  }
-  h2 {
-    color: #2c3e50;
-    font-size: 1.2em;
-    margin-top: 1.5em;
-  }
-  p {
-    margin: 0.75em 0;
-  }
-  a {
-    color: #007aff;
-    text-decoration: none;
-  }
-  a:hover {
-    text-decoration: underline;
-  }
-  .footer {
-    margin-top: 2em;
-    font-size: 0.9em;
-    color: #666;
-    text-align: center;
-  }
-</style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue",
+        Helvetica, Arial, "PingFang SC", "Hiragino Sans GB",
+        "Microsoft YaHei", sans-serif;
+      line-height: 1.7;
+      color: #333;
+      background-color: #ffffff;
+      padding: 16px;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 26px;
+      margin-bottom: 8px;
+    }
+
+    .company {
+      text-align: center;
+      font-size: 15px;
+      color: #666;
+      margin-bottom: 24px;
+    }
+
+    h2 {
+      font-size: 18px;
+      margin-top: 28px;
+      border-left: 4px solid #4f46e5;
+      padding-left: 10px;
+    }
+
+    p {
+      margin: 10px 0;
+    }
+
+    .date {
+      text-align: center;
+      color: #888;
+      font-size: 14px;
+      margin-bottom: 20px;
+    }
+
+    .sdk-section {
+      background-color: #f8f9ff;
+      border: 1px solid #e0e4ff;
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 16px;
+    }
+
+    .sdk-section strong {
+      color: #4f46e5;
+    }
+
+    ul {
+      padding-left: 18px;
+    }
+
+    li {
+      margin-bottom: 8px;
+      word-break: break-all;
+    }
+
+    a {
+      color: #4f46e5;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
 </head>
+
 <body>
-  <div class="container">
-    <h1>隐私政策</h1>
-    <p><strong>生效日期：</strong>2025年6月26日</p>
-    <p>感谢您使用「灵语」。我们非常重视您的隐私与个人信息保护。本隐私政策将向您说明我们在您使用本应用过程中，如何收集、使用、存储及保护您的相关信息。</p>
 
-    <h2>1. 我们收集的信息</h2>
-    <p>在您使用「灵语」的过程中，我们可能会在符合法律法规的前提下，收集以下信息：</p>
-    <p>（1）<strong>设备与使用信息（非个人身份信息）</strong>：包括设备型号、操作系统版本、应用版本号、应用使用情况、崩溃日志等，用于保障应用的正常运行、性能优化和问题排查。</p>
-    <p>（2）<strong>您主动提供的信息</strong>：例如您在使用相关功能时主动输入的内容。除非您明确主动提供，否则我们不会要求您提交个人身份信息。</p>
-    <p>我们不会主动收集您的 IMEI、IMSI、设备 MAC 地址、联系人、通话记录、短信、本机电话号码、精确位置信息、图片、音视频等与核心功能无关的个人敏感信息。</p>
-
-    <h2>2. 静默状态及后台运行说明</h2>
-    <p>当「灵语」处于静默状态或在后台运行时，我们<strong>不会主动收集或上传您的个人身份信息</strong>。</p>
-    <p>在必要情况下，为保障应用的稳定性和安全性，应用或其所集成的服务可能在后台进行<strong>基础运行状态统计或异常信息记录</strong>（如崩溃信息、网络状态），该等信息不用于识别您的个人身份。</p>
-
-    <h2>3. 信息的使用方式</h2>
-    <p>我们收集的信息仅用于以下目的：</p>
-    <p>（1）保障应用核心功能的正常运行；</p>
-    <p>（2）优化产品性能与用户体验；</p>
-    <p>（3）进行必要的故障分析与安全防护。</p>
-    <p>我们不会将您的个人信息用于与上述目的无关的用途。</p>
-
-    <h2>4. 第三方服务与 SDK 说明</h2>
-    <p>「灵语」可能会集成第三方提供的技术服务或 SDK（如 AI 模型能力、统计分析或基础服务支持）。这些第三方服务可能会根据其功能需要，处理部分设备或使用信息。</p>
-    <p>在应用处于前台、后台或静默状态时，第三方 SDK 可能会收集<strong>必要的设备信息或运行日志</strong>，用于实现其对应的功能（如服务稳定性分析、模型调用保障等）。</p>
-    <p>我们已对第三方 SDK 进行必要的合规评估，并要求其遵循相关法律法规及隐私保护要求。第三方将仅在其服务目的范围内处理信息，不得用于其他用途。</p>
-    <p>相关第三方服务提供方将依据其各自的隐私政策对信息进行处理，建议您在需要时进一步查阅。使用到的第三方SDK和隐私政策如下</p>
-    <p>优量汇 Android SDK 开发者:深圳市腾讯计算机系统有限公司 SDK隐私政策链接：https://e.qq.com/dev/help_detail.html?cid=2005&pid=5983</p>
-    <p>快手联盟（Android） 开发者:北京快手科技有限公司 SDK隐私政策链接：https://u.kuaishou.com/home/help/detail/1337/1425</p>
-    <p>抖音SDK（安卓版） 开发者:北京微播视界科技有限公司 SDK隐私政策链接：https://developer.open-douyin.com/docs/resource/zh-CN/dop/operation-standard/service-protocol/douyinsdk_pingtaiyinsizhengce</p>
-    <p>百度oCPX转化追踪SDK 开发者:北京百度网讯科技有限公司 SDK隐私政策链接：https://ocpx-devcenter.bj.bcebos.com/%E5%BA%94%E7%94%A8SDK%E8%B5%84%E6%BA%90/%E3%80%90%E7%99%BE%E5%BA%A6oCPX%E8%BD%AC%E5%8C%96%E8%BF%BD%E8%B8%AASDK%E3%80%91%E9%9A%90%E7%A7%81%E6%94%BF%E7%AD%96%2020250303.pdf?authorization=bce-auth-v1/e2ea496b5e7f4e20bd0e5d1ce5533588/2025-03-03T03%3A24%3A50Z/-1/host/f51f435fb61f7078188b3f185fcbffa4f08b54840da573f0050f6c90ce7dcb70</p>
-    <p>百度移动广告SDK 开发者:北京百度网讯科技有限公司 SDK隐私政策链接：https://union.baidu.com/bqt/#/legal/policies</p>
-    <p>SDK名称：穿山甲广告SDK 开发者:北京巨量引擎网络技术有限公司 SDK隐私政策链接：https://www.csjplatform.com/privacy</p>
-    <h2>5. 信息共享与披露</h2>
-    <p>除非法律法规另有规定，或为实现本应用的核心功能所必需，我们不会向任何无关第三方共享、转让或披露您的个人信息。</p>
-    <p>如确需向第三方共享信息，我们将仅共享实现该功能所必需的最小范围信息，并采取相应的安全措施。</p>
-
-    <h2>6. 数据安全</h2>
-    <p>我们采取合理可行的技术和管理措施，保护您的信息免受未经授权的访问、修改、披露或破坏。但请您理解，任何网络环境下的数据传输均无法保证绝对安全。</p>
-
-    <h2>7. 政策变更</h2>
-    <p>我们可能根据法律法规或业务调整需要，对本隐私政策进行更新。政策发生变更时，我们将以合理方式提示您。继续使用「灵语」即视为您已理解并同意更新后的内容。</p>
-
-    <h2>8. 联系我们</h2>
-    <p>我们是成都暴牙兔网络科技有限公司，地址位于：成都高新区世纪城南路599号天府软件园D区6栋505号</p>
-    <p>如果您对本隐私政策或个人信息保护有任何疑问、意见或建议，请通过以下方式联系我们：</p>
-    <p>📧 <a href="mailto:support@yuanma.live">support@yuanma.live</a></p>
-
-    <div class="footer">
-      本隐私政策适用于 App「灵语」。
-    </div>
+  <!-- 公司名称 -->
+  <div class="company">
+    成都暴牙兔网络科技有限公司
   </div>
+
+  <!-- 标题 -->
+  <h1>隐私政策</h1>
+
+  <!-- 生效日期 -->
+  <div class="date">生效日期：2025年6月26日</div>
+
+  <p>
+    感谢您使用「灵语」。我们非常重视您的隐私与个人信息保护。
+    本隐私政策将向您说明我们在您使用本应用过程中，
+    如何收集、使用、存储及保护您的相关信息。
+  </p>
+
+  <h2>1. 我们收集的信息</h2>
+  <p>在您使用「灵语」的过程中，我们可能会在符合法律法规的前提下，收集以下信息：</p>
+
+  <p>
+    （1）<strong>设备与使用信息（非个人身份信息）</strong>：包括设备型号、
+    操作系统版本、应用版本号、应用使用情况、崩溃日志等，
+    用于保障应用的正常运行、性能优化和问题排查。
+  </p>
+
+  <p>
+    （2）<strong>您主动提供的信息</strong>：例如您在使用相关功能时主动输入的内容。
+    除非您明确主动提供，否则我们不会要求您提交个人身份信息。
+  </p>
+
+  <p>
+    我们不会主动收集您的 IMEI、IMSI、设备 MAC 地址、联系人、通话记录、短信、
+    本机电话号码、精确位置信息、图片、音视频等
+    与核心功能无关的个人敏感信息。
+  </p>
+
+  <h2>2. 静默状态及后台运行说明</h2>
+  <p>
+    当「灵语」处于静默状态或在后台运行时，
+    我们不会主动收集或上传您的个人身份信息。
+  </p>
+
+  <p>
+    在必要情况下，为保障应用的稳定性和安全性，
+    应用或其所集成的服务可能在后台进行基础运行状态统计
+    或异常信息记录（如崩溃信息、网络状态），
+    该等信息不用于识别您的个人身份。
+  </p>
+
+  <h2>3. 信息的使用方式</h2>
+  <ul>
+    <li>保障应用核心功能的正常运行；</li>
+    <li>优化产品性能与用户体验；</li>
+    <li>进行必要的故障分析与安全防护。</li>
+  </ul>
+
+  <p>我们不会将您的个人信息用于与上述目的无关的用途。</p>
+
+  <h2>4. 第三方服务与 SDK 说明（重点）</h2>
+
+  <p>
+    「灵语」可能会集成第三方提供的技术服务或 SDK
+    （如 AI 模型能力、统计分析或广告基础服务支持）。
+    这些第三方服务可能会根据其功能需要，
+    处理部分设备或使用信息。
+  </p>
+
+  <p>
+    在应用处于前台、后台或静默状态时，
+    第三方 SDK 可能会收集必要的设备信息或运行日志，
+    用于实现其对应功能（如服务稳定性分析、转化统计等）。
+  </p>
+
+  <p>
+    我们已对相关 SDK 进行必要的合规评估，
+    并要求其遵循适用的法律法规及隐私保护要求，
+    不得将信息用于其服务目的之外的用途。
+  </p>
+
+  <!-- SDK 高亮区域 -->
+  <div class="sdk-section">
+    <p><strong>我们当前集成的第三方 SDK 及其隐私政策如下：</strong></p>
+    <ul>
+      <li>
+        优量汇 Android SDK<br/>
+        开发者：深圳市腾讯计算机系统有限公司<br/>
+        隐私政策：
+        <a href="https://e.qq.com/dev/help_detail.html?cid=2005&pid=5983" target="_blank">
+          https://e.qq.com/dev/help_detail.html?cid=2005&pid=5983
+        </a>
+      </li>
+
+      <li>
+        快手联盟（Android）<br/>
+        开发者：北京快手科技有限公司<br/>
+        隐私政策：
+        <a href="https://u.kuaishou.com/home/help/detail/1337/1425" target="_blank">
+          https://u.kuaishou.com/home/help/detail/1337/1425
+        </a>
+      </li>
+
+      <li>
+        抖音 SDK（安卓版）<br/>
+        开发者：北京微播视界科技有限公司<br/>
+        隐私政策：
+        <a href="https://developer.open-douyin.com/docs/resource/zh-CN/dop/operation-standard/service-protocol/douyinsdk_pingtaiyinsizhengce" target="_blank">
+          查看
+        </a>
+      </li>
+
+      <li>
+        百度 oCPX 转化追踪 SDK<br/>
+        开发者：北京百度网讯科技有限公司<br/>
+        隐私政策：
+        <a href="https://ocpx-devcenter.bj.bcebos.com/%E5%BA%94%E7%94%A8SDK%E8%B5%84%E6%BA%90/%E3%80%90%E7%99%BE%E5%BA%A6oCPX%E8%BD%AC%E5%8C%96%E8%BF%BD%E8%B8%AASDK%E3%80%91%E9%9A%90%E7%A7%81%E6%94%BF%E7%AD%96%2020250303.pdf" target="_blank">
+          查看
+        </a>
+      </li>
+
+      <li>
+        百度移动广告 SDK<br/>
+        开发者：北京百度网讯科技有限公司<br/>
+        隐私政策：
+        <a href="https://union.baidu.com/bqt/#/legal/policies" target="_blank">
+          https://union.baidu.com/bqt/#/legal/policies
+        </a>
+      </li>
+
+      <li>
+        穿山甲广告 SDK<br/>
+        开发者：北京巨量引擎网络技术有限公司<br/>
+        隐私政策：
+        <a href="https://www.csjplatform.com/privacy" target="_blank">
+          https://www.csjplatform.com/privacy
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <h2>5. 信息共享与披露</h2>
+  <p>
+    除非法律法规另有规定，或为实现本应用核心功能所必需，
+    我们不会向任何无关第三方共享、转让或披露您的个人信息。
+  </p>
+
+  <h2>6. 数据安全</h2>
+  <p>
+    我们采取合理可行的技术和管理措施保护您的信息安全，
+    但请您理解，任何网络传输方式均无法保证绝对安全。
+  </p>
+
+  <h2>7. 政策变更</h2>
+  <p>
+    我们可能根据法律法规或业务调整对本隐私政策进行更新，
+    更新后继续使用「灵语」即视为您已同意更新内容。
+  </p>
+
+  <h2>8. 联系我们</h2>
+  <p>
+    公司名称：成都暴牙兔网络科技有限公司<br/>
+    地址：成都高新区世纪城南路599号天府软件园D区6栋505号
+  </p>
+
+  <p>
+    如您对本隐私政策有任何疑问、意见或建议，
+    请联系我们：<br/>
+    📧 <a href="mailto:support@yuanma.live">support@yuanma.live</a>
+  </p>
+
+  <p>本隐私政策适用于 App「灵语」。</p>
+
 </body>
 </html>
