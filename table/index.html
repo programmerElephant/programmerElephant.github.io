@@ -7,7 +7,6 @@
   <script src="https://cdn.tailwindcss.com"></script>
 
   <style>
-
     body {
       background:#f0f2f5;
       font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
@@ -93,24 +92,22 @@
       border-collapse:collapse;
       border:1px solid #f0f0f0;
     }
-    /* 🌟 优化5: 标题居中对齐 */
     .ant-table th {
       background:#fafafa;
       padding:10px;
       border-bottom:1px solid #f0f0f0;
       font-weight:500;
       font-size:14px;
-      text-align: center; /* 标题居中 */
+      text-align: center;
     }
-    /* 🌟 优化5: 内容居中对齐 */
     .ant-table td {
       padding:10px;
       border-bottom:1px solid #f5f5f5;
       font-size:14px;
-      text-align: center; /* 内容居中 */
+      text-align: center;
     }
     .ant-table td:nth-child(1) {
-        text-align: left; /* UserID或时间等可能需要左对齐，保持可读性 */
+        text-align: left;
     }
     .ant-table tr:hover td {
       background:#f5faff;
@@ -124,14 +121,13 @@
     .drawer.open {right:0;}
     .drawer-close {position:absolute; top:14px; right:18px; font-size:20px; cursor:pointer;}
 
-    /* New Statistic Card Styling */
     .stat-card {
         background: white;
         border-radius: 8px;
         padding: 16px;
         box-shadow: 0 1px 3px rgba(0,0,0,.04);
         border: 1px solid #f0f0f0;
-        cursor: pointer; /* 可点击 */
+        cursor: pointer;
         transition: transform 0.1s;
     }
     .stat-card:hover {
@@ -147,9 +143,7 @@
       font-size: 14px;
       color: #666;
     }
-
   </style>
-
 </head>
 
 <body class="p-5">
@@ -164,12 +158,10 @@
 </div>
 
 <div class="ant-card mb-4">
-
   <div class="flex flex-wrap gap-5 items-end mb-4">
-
     <div>
       <p class="text-gray-600 text-sm mb-1">管理员 ID</p>
-      <input id="adminId" class="ant-input w-40" placeholder="Admin ID">
+      <input id="adminId" class="ant-input w-40" placeholder="Admin ID" value="chaman">
     </div>
 
     <div>
@@ -187,30 +179,23 @@
 
   <div class="flex items-center gap-3 mb-4">
     <span class="w-16 text-gray-600 text-sm">国家：</span>
-
     <div id="countrySelector" class="flex gap-2 flex-wrap">
-      <div class="ant-selector active" data-value="">全部</div>
-      <div class="ant-selector" data-value="3">中国</div>
-      <div class="ant-selector" data-value="0">土耳其</div>
-      <div class="ant-selector" data-value="1">阿拉伯</div>
+      <div class="ant-selector active" data-value="">加载中...</div>
     </div>
   </div>
 
   <div class="flex items-center gap-3">
     <span class="w-16 text-gray-600 text-sm">类型：</span>
-
     <div id="actionSelector" class="flex gap-2 flex-wrap">
       <div class="ant-selector" data-action="retention">留存率</div>
       <div class="ant-selector active" data-action="userIds">用户列表</div>
       <div class="ant-selector" data-action="userData">单用户数据</div>
       <div class="ant-selector" data-action="vipCount">VIP人数</div>
     </div>
-
     <div id="userIdInputWrapper" class="hidden ml-4">
       <input id="userIdInput" class="ant-input w-40" placeholder="用户ID">
     </div>
   </div>
-
 </div>
 
 <div id="statsContainer" class="mb-4 hidden">
@@ -236,6 +221,7 @@
     </div>
   </div>
 </div>
+
 <div id="userListControls" class="ant-card mb-4 hidden">
   <div class="flex gap-3 items-center">
     <input id="userListSearch" class="ant-input flex-1" placeholder="搜索用户ID、国家或设备">
@@ -244,58 +230,97 @@
 </div>
 
 <div id="userDataContainer" class="ant-card"></div>
-
-
 <div id="overlay" class="overlay"></div>
-
 <div id="userDrawer" class="drawer">
   <span id="drawerClose" class="drawer-close">&times;</span>
-
   <h2 class="text-lg font-semibold mb-3" id="drawerTitle">用户详情</h2>
-
   <div id="drawerControls" class="flex gap-3 mb-3">
     <input id="drawerSearch" class="ant-input flex-1" placeholder="搜索事件名称、IP、设备或Body内容">
     <button id="drawerSortBtn" class="ant-btn">按时间 ↓</button>
   </div>
-
   <div id="drawerContent"></div>
 </div>
 
-
 <script>
-let selectedApp = {name:"VPN Proxy", table:"vpnproxy"};
-let selectedCountry = "";
-let selectedAction = "userIds"; // 默认改为用户列表
-
-// 统计数据缓存
-let userStats = {
-  install: [], // 新用户
-  buy: [],     // 购买
-  cancel: [],  // 取消
-  refund: [],  // 退款
-  userIds: [], // 用户列表 (用于主表)
+// --- 国家名称映射表 ---
+const countryNameMap = {
+    "CN": "中国", "US": "美国", "TR": "土耳其", "SA": "沙特阿拉伯",
+    "AE": "阿联酋", "GB": "英国", "FR": "法国", "DE": "德国",
+    "JP": "日本", "KR": "韩国", "RU": "俄罗斯", "IN": "印度",
+    "BR": "巴西", "CA": "加拿大", "AU": "澳大利亚", "ID": "印尼",
+    "MY": "马来西亚", "SG": "新加坡", "TH": "泰国", "VN": "越南",
+    "HK": "中国香港", "TW": "中国台湾", "PH": "菲律宾"
 };
 
-// 🌟 修改1: 用户列表数据和排序状态
-let currentAllUserList = []; // 用于存储从服务器获取的原始用户列表
-let currentDisplayedUserList = []; // 用于存储当前显示的（经过搜索/排序）用户列表
+let selectedApp = {name:"VPN Proxy", table:"vpnproxy"};
+let selectedCountry = "";
+let selectedAction = "userIds";
 
-// 抽屉数据和排序状态
+let userStats = { install: [], buy: [], cancel: [], refund: [], userIds: [] };
+let currentAllUserList = [];
+let currentDisplayedUserList = [];
 let currentDrawerData = [];
-let sortOrder = 'desc'; // 'desc' 降序 (时间新到旧), 'asc' 升序 (时间旧到新)
+let sortOrder = 'desc';
 
 const startDateInput = document.getElementById("startDate");
 const endDateInput = document.getElementById("endDate");
+const userListSearchInput = document.getElementById("userListSearch");
+const userListSortBtn = document.getElementById("userListSortBtn");
 const drawerSortBtn = document.getElementById("drawerSortBtn");
-const userListSearchInput = document.getElementById("userListSearch"); // 🌟 修改1
-const userListSortBtn = document.getElementById("userListSortBtn"); // 🌟 修改1
-const drawerSearchInput = document.getElementById("drawerSearch"); // 🌟 修改2
+const drawerSearchInput = document.getElementById("drawerSearch");
 
+// --- 自动获取国家接口并渲染 ---
+async function initCountries() {
+    const url = "https://analyze.yuanma.live/event?&action=countries&adminId=chaman&table=lumotalk";
+    const selectorContainer = document.getElementById("countrySelector");
+    
+    try {
+        const response = await fetch(url);
+        const res = await response.json();
+        
+        if (res.success && res.data) {
+            // 渲染“全部” + 接口返回的国家
+            renderCountrySelectors(res.data);
+        } else {
+            selectorContainer.innerHTML = '<div class="ant-selector active" data-value="">全部</div>';
+        }
+    } catch (e) {
+        console.error("获取国家列表失败", e);
+        selectorContainer.innerHTML = '<div class="ant-selector active" data-value="">全部</div>';
+    }
+}
 
-// 🌟 新增：根据国家调整日期时间边界的函数 (保持原样)
+function renderCountrySelectors(countries) {
+    const container = document.getElementById("countrySelector");
+    // 1. 手动添加全部
+    let html = `<div class="ant-selector active" data-value="">全部</div>`;
+    
+    // 2. 遍历接口数据
+    countries.forEach(code => {
+        const name = countryNameMap[code] || code; // 如果找不到对应名称，则显示代码本身
+        html += `<div class="ant-selector" data-value="${code}">${name}</div>`;
+    });
+    
+    container.innerHTML = html;
+
+    // 3. 重新绑定点击事件
+    container.querySelectorAll(".ant-selector").forEach(btn => {
+        btn.onclick = () => {
+            container.querySelectorAll(".ant-selector").forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            selectedCountry = btn.dataset.value;
+            console.log("当前选择国家:", selectedCountry);
+        };
+    });
+}
+
+// 页面加载运行
+window.onload = function() {
+    setToday();
+    initCountries();
+};
+
 function getAdjustedDateRange(startDateStr, endDateStr, country) {
-
-    // Helper to format Date object into YYYY-MM-DD HH:MM:SS string
     const formatDateTime = (date) => {
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -309,21 +334,16 @@ function getAdjustedDateRange(startDateStr, endDateStr, country) {
     let start = new Date(startDateStr);
     let end = new Date(endDateStr);
     
-    // 土耳其 (0) 或 阿拉伯 (1)
-    if (country === "0" || country === "1") {
-        // 1. 处理 Start Date: 当天 5:00:00
+    console.log("调整时间国家为",country)
+    
+    // 这里的逻辑对应你要求的 TR(土耳其) 等代码转换逻辑
+    // 0 是土耳其旧代码，TR 是新代码
+    if (country === "0" || country === "1" || country === "TR" || country === "SA") {
         start.setHours(5, 0, 0, 0);
-
-        // 2. 处理 End Date: 选定日期的第二天 4:59:59
-        // 步骤 a: 先将日期设置为结束日期 (用户输入)，并确保时间是 00:00:00
         end.setHours(0, 0, 0, 0);
-        // 步骤 b: 增加一天
         end.setDate(end.getDate() + 1);
-        // 步骤 c: 设置时间到 4:59:59
         end.setHours(4, 59, 59, 0);
-
     } else {
-        // 中国 ("3") 或 全部 ("")：当天 00:00:00 到 23:59:59
         start.setHours(0, 0, 0, 0);
         end.setHours(23, 59, 59, 0);
     }
@@ -334,14 +354,12 @@ function getAdjustedDateRange(startDateStr, endDateStr, country) {
     };
 }
 
-
 function setToday() {
   const t=new Date();
   const y=t.getFullYear(), m=String(t.getMonth()+1).padStart(2,"0"), d=String(t.getDate()).padStart(2,"0");
   startDateInput.value=`${y}-${m}-${d}`;
   endDateInput.value=`${y}-${m}-${d}`;
 }
-setToday();
 
 /* 产品 Tab */
 document.querySelectorAll("#productTabs .ant-tab").forEach(btn=>{
@@ -352,15 +370,6 @@ document.querySelectorAll("#productTabs .ant-tab").forEach(btn=>{
   };
 });
 
-/* 国家选择 */
-document.querySelectorAll("#countrySelector .ant-selector").forEach(btn=>{
-  btn.onclick=()=>{
-    document.querySelectorAll("#countrySelector .ant-selector").forEach(b=>b.classList.remove("active"));
-    btn.classList.add("active");
-    selectedCountry = btn.dataset.value;
-  };
-});
-
 /* action 选择 */
 document.querySelectorAll("#actionSelector .ant-selector").forEach(btn=>{
   btn.onclick=()=>{
@@ -368,13 +377,12 @@ document.querySelectorAll("#actionSelector .ant-selector").forEach(btn=>{
     btn.classList.add("active");
     selectedAction = btn.dataset.action;
 
-    // 切换用户列表/统计区显示
     if(selectedAction==="userIds"){
       document.getElementById("statsContainer").classList.remove("hidden");
       document.getElementById("userListControls").classList.remove("hidden");
     } else {
       document.getElementById("statsContainer").classList.add("hidden");
-      document.getElementById("userListControls").classList.add("hidden"); // 其他模式隐藏列表过滤器
+      document.getElementById("userListControls").classList.add("hidden");
     }
 
     if(selectedAction==="userData")
@@ -384,9 +392,7 @@ document.querySelectorAll("#actionSelector .ant-selector").forEach(btn=>{
   };
 });
 
-// 默认执行一次切换逻辑
 document.querySelector('#actionSelector .ant-selector[data-action="userIds"]').click();
-
 
 function vipStatusLabel(s){
   switch(s){
@@ -396,14 +402,12 @@ function vipStatusLabel(s){
   return'<span class="px-2 py-1 text-xs bg-gray-300 text-gray-700 rounded-full">普通</span>';
 }
 
-// 统计数据点击事件绑定
 document.querySelectorAll('#statsContainer .stat-card').forEach(card => {
     card.onclick = () => {
         const action = card.dataset.action;
         const label = card.dataset.label;
         const list = userStats[action];
         if (list && list.length > 0) {
-            // 🌟 修改5: 传递完整列表
             openDrawerWithUserIds(list, label);
         } else {
             alert(`当前没有 ${label}`);
@@ -411,24 +415,15 @@ document.querySelectorAll('#statsContainer .stat-card').forEach(card => {
     };
 });
 
-
 document.getElementById("fetchBtn").onclick = async ()=>{
-
   const admin=document.getElementById("adminId").value.trim();
   if(!admin) return alert("请输入管理员ID");
+  if (!startDateInput.value || !endDateInput.value) return alert("请选择日期");
 
-  // 🌟 错误处理：检查日期
-  if (!startDateInput.value || !endDateInput.value) return alert("请选择开始日期和结束日期");
-
-
-  // 🌟 获取调整后的时间范围
   const { startDateTime, endDateTime } = getAdjustedDateRange(startDateInput.value, endDateInput.value, selectedCountry);
   
-  
   if(selectedAction==="userIds"){
-      // 批量请求统计数据
-      await fetchStats(admin, startDateTime, endDateTime); // 传递调整后的时间
-      // 🌟 修改1: 渲染用户列表 (使用完整数据进行初始化)
+      await fetchStats(admin, startDateTime, endDateTime);
       currentAllUserList = userStats.userIds;
       applyUserListFilterAndSort();
       return;
@@ -438,13 +433,10 @@ document.getElementById("fetchBtn").onclick = async ()=>{
       return alert("请输入用户ID");
   }
 
-  // 其他 action 的原有逻辑
   const url=new URL("https://analyze.yuanma.live/event");
   url.searchParams.append("table",selectedApp.table);
   url.searchParams.append("action",selectedAction);
   url.searchParams.append("adminId",admin);
-  
-  // 🌟 使用调整后的时间
   url.searchParams.append("startDate", startDateTime);
   url.searchParams.append("endDate", endDateTime);
 
@@ -463,9 +455,7 @@ document.getElementById("fetchBtn").onclick = async ()=>{
   }
 };
 
-// 🌟 修改：批量获取统计数据，现在接受调整后的时间
 async function fetchStats(adminId, startDateTime, endDateTime) {
-    // 🌟 优化：添加 name 参数到 actionMap
     const actionMap = {
         "install": "install",
         "buy": "subscribe_page_success,guide_start_success",
@@ -482,8 +472,6 @@ async function fetchStats(adminId, startDateTime, endDateTime) {
         url.searchParams.append("table", table);
         url.searchParams.append("action", action);
         url.searchParams.append("adminId", adminId);
-        
-        // 🌟 使用传入的调整后的时间
         url.searchParams.append("startDate", startDateTime);
         url.searchParams.append("endDate", endDateTime);
         
@@ -491,31 +479,19 @@ async function fetchStats(adminId, startDateTime, endDateTime) {
           url.searchParams.append("country", country);
         }
 
-        // 添加 name 参数
         if(actionMap[action]) {
              url.searchParams.append("name", actionMap[action]);
         }
 
-        return fetch(url).then(res => {
-            if (!res.ok) throw new Error(res.statusText);
-            return res.json();
-        }).then(data => ({ action, data }))
-          .catch(error => {
-            console.error(`Fetching ${action} failed:`, error);
-            return { action, data: [] }; // 失败时返回空数组
-          });
+        return fetch(url).then(res => res.json()).then(data => ({ action, data }))
+          .catch(error => ({ action, data: [] }));
     });
 
     const results = await Promise.all(promises);
-
-    results.forEach(item => {
-        userStats[item.action] = item.data;
-    });
-
+    results.forEach(item => { userStats[item.action] = item.data; });
     updateStatsDisplay();
 }
 
-// 更新统计数据显示
 function updateStatsDisplay() {
     const installCount = userStats.install.length;
     const buyCount = userStats.buy.length;
@@ -528,7 +504,6 @@ function updateStatsDisplay() {
     document.getElementById("statCancellationsValue").textContent = cancelCount;
     document.getElementById("statRefundsValue").textContent = refundCount;
 
-    // 计算比率
     const rateBuy = installCount > 0 ? (buyCount / installCount * 100).toFixed(2) : "0.00";
     const rateCancel = buyCount > 0 ? (cancelCount / buyCount * 100).toFixed(2) : "0.00";
     const rateRefund = buyCount > 0 ? (refundCount / buyCount * 100).toFixed(2) : "0.00";
@@ -538,7 +513,6 @@ function updateStatsDisplay() {
     document.getElementById("rateRefund").textContent = `${rateRefund}%`;
 }
 
-
 function renderResult(data){
   const box=document.getElementById("userDataContainer");
   box.innerHTML="";
@@ -547,7 +521,6 @@ function renderResult(data){
     let html=`<table class="ant-table"><thead><tr>
       <th>日期</th><th>新增</th><th>Day1 留存</th><th>留存率%</th></tr></thead><tbody>`;
     data.forEach(d=>{
-      // 🌟 修改3: 使用 period_start 并截取日期部分
       const date = d.period_start ? d.period_start.substring(0, 10) : '未知日期';
       html+=`<tr><td>${date}</td><td>${d.new_user_count}</td><td>${d.day1_retention}</td>
         <td>${(d.day1_rate*100).toFixed(2)}%</td></tr>`;
@@ -563,8 +536,6 @@ function renderResult(data){
   }
 
   if(selectedAction==="userIds"){
-    // 🌟 修改1: 这个分支在 fetchBtn.onclick 中处理了，此分支理论上不会被执行。
-    // 如果执行到这里，说明数据是直接从 renderResult 来的，我们保持兼容。
     currentAllUserList = data;
     applyUserListFilterAndSort();
     return;
@@ -573,14 +544,12 @@ function renderResult(data){
   if(selectedAction==="userData"){ openDrawerWithData(data); return; }
 }
 
-// 🌟 修改1: 用户列表的搜索和排序逻辑
 function applyUserListFilterAndSort() {
     let filteredList = currentAllUserList;
     const searchText = userListSearchInput.value.toLowerCase().trim();
     const sortField = userListSortBtn.dataset.sortField;
     const sortOrder = userListSortBtn.dataset.sortOrder;
 
-    // 1. 过滤/搜索
     if (searchText) {
         filteredList = currentAllUserList.filter(d => {
             return d.user_id.toLowerCase().includes(searchText) ||
@@ -589,22 +558,15 @@ function applyUserListFilterAndSort() {
         });
     }
 
-    // 2. 排序
     filteredList.sort((a, b) => {
         let valA, valB;
-
         if (sortField === 'log_time') {
-            valA = new Date(a.log_time);
-            valB = new Date(b.log_time);
+            valA = new Date(a.log_time); valB = new Date(b.log_time);
         } else if (sortField === 'vip_status') {
-            valA = a.vip_status;
-            valB = b.vip_status;
+            valA = a.vip_status; valB = b.vip_status;
         } else {
-            // 默认按 user_id 字符串排序
-            valA = a[sortField] || '';
-            valB = b[sortField] || '';
+            valA = a[sortField] || ''; valB = b[sortField] || '';
         }
-
         if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
         if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
         return 0;
@@ -614,43 +576,30 @@ function applyUserListFilterAndSort() {
     renderUserList(currentDisplayedUserList);
 }
 
-// 🌟 修改1: 用户列表排序按钮事件
 userListSortBtn.onclick = () => {
     let currentField = userListSortBtn.dataset.sortField;
     let currentOrder = userListSortBtn.dataset.sortOrder;
     let newField, newOrder;
 
-    // 切换排序字段和顺序
     if (currentField === 'log_time') {
-        newField = 'vip_status';
-        newOrder = 'desc';
-    } else if (currentField === 'vip_status') {
-        newField = 'log_time';
-        newOrder = currentOrder === 'desc' ? 'asc' : 'desc';
-    } else { // 默认为 log_time
-        newField = 'log_time';
-        newOrder = currentOrder === 'desc' ? 'asc' : 'desc';
+        newField = 'vip_status'; newOrder = 'desc';
+    } else {
+        newField = 'log_time'; newOrder = currentOrder === 'desc' ? 'asc' : 'desc';
     }
 
     userListSortBtn.dataset.sortField = newField;
     userListSortBtn.dataset.sortOrder = newOrder;
-
-    // 更新按钮文本
     const orderIcon = newOrder === 'desc' ? '↓' : '↑';
     let fieldText = newField === 'log_time' ? '时间' : 'VIP';
     userListSortBtn.textContent = `按${fieldText} ${orderIcon}`;
-
     applyUserListFilterAndSort();
 };
 
-// 🌟 修改1: 用户列表搜索框事件
 userListSearchInput.oninput = applyUserListFilterAndSort;
-
 
 function renderUserList(list){
   const box=document.getElementById("userDataContainer");
   box.innerHTML="";
-  
   let html=`<table class="ant-table"><thead><tr>
     <th>UserID</th><th>国家</th><th>设备</th><th>VIP</th><th>最后记录时间</th><th>操作</th></tr></thead><tbody>`;
   list.forEach(d=>{
@@ -676,164 +625,97 @@ async function fetchUser(uid){
   url.searchParams.append("userId",uid);
   try {
       const res=await fetch(url);
-      if(!res.ok) throw new Error(res.statusText);
       openDrawerWithData(await res.json());
-  } catch(error) {
-      alert(`查询用户详情失败: ${error.message}`);
-  }
+  } catch(error) { alert(`详情失败: ${error.message}`); }
 }
 
 const overlay=document.getElementById("overlay");
 const drawer=document.getElementById("userDrawer");
 document.getElementById("drawerClose").onclick=closeDrawer;
 overlay.onclick=closeDrawer;
-
-// 绑定抽屉排序按钮事件 (保持原样)
 drawerSortBtn.onclick = sortDrawerData;
-
-// 🌟 修改2: 绑定抽屉搜索按钮事件
 drawerSearchInput.oninput = applyDrawerSearch;
-
 
 function closeDrawer(){
     drawer.classList.remove("open");
     overlay.classList.remove("show");
 }
 
-// 🌟 修改2: 抽屉搜索逻辑
 function applyDrawerSearch() {
     const searchText = drawerSearchInput.value.toLowerCase().trim();
-    if (!searchText) {
-        // 如果清空搜索，重新应用排序并渲染全部
-        sortDrawerData(true);
-        return;
-    }
-
-    // 过滤数据：基于存储在 currentDrawerData 的原始数据进行过滤
+    if (!searchText) { sortDrawerData(true); return; }
     const filteredList = currentDrawerData.filter(d => {
-        // 搜索事件、IP、设备、Body
         const bodyContent = formatBodyContent(d.body);
         return d.name.toLowerCase().includes(searchText) ||
                d.ip.toLowerCase().includes(searchText) ||
                d.device.toLowerCase().includes(searchText) ||
                bodyContent.toLowerCase().includes(searchText);
     });
-
     renderDrawerContent(filteredList);
 }
 
-
-// 抽屉数据排序逻辑
 function sortDrawerData(reset = false) {
     if (currentDrawerData.length === 0) return;
-
-    if (!reset) {
-        // 切换排序状态
-        sortOrder = sortOrder === 'desc' ? 'asc' : 'desc';
-    } else {
-        // 如果是重置，确保排序状态反映在按钮上，但不需要切换
-        sortOrder = 'desc'; // 重置后默认降序
-    }
+    if (!reset) sortOrder = sortOrder === 'desc' ? 'asc' : 'desc';
+    else sortOrder = 'desc';
     
-    // 确保搜索框清空
     drawerSearchInput.value = '';
-
-    // 排序数据：使用 log_time 进行比较
     currentDrawerData.sort((a, b) => {
         const dateA = new Date(a.log_time);
         const dateB = new Date(b.log_time);
         return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
     });
-
-    // 更新按钮显示
     drawerSortBtn.textContent = sortOrder === 'desc' ? '按时间 ↓' : '按时间 ↑';
-
-    // 重新渲染抽屉内容
     renderDrawerContent(currentDrawerData);
 }
 
-// 🌟 新增：Body内容格式化函数 (用于详情解析和搜索)
 function formatBodyContent(body) {
     if (!body) return '';
-    return body.split('|')
-               .filter(item => item.trim() !== '')
-               .map(item => `<div class="text-xs text-gray-700">${item.trim()}</div>`)
-               .join('');
+    return body.split('|').filter(item => item.trim() !== '')
+               .map(item => `<div class="text-xs text-gray-700">${item.trim()}</div>`).join('');
 }
 
-
-// 渲染抽屉内容的通用函数
 function renderDrawerContent(list) {
     const box = document.getElementById("drawerContent");
     let html=`<table class="ant-table"><thead><tr>
         <th style="text-align: left;">时间</th><th style="text-align: center;">事件</th><th style="text-align: left;">详情</th></tr></thead><tbody>`;
     list.forEach(d=>{
-        // 🌟 修改2: 重新格式化详情列
         const detailHtml = `
             <div class="text-left text-xs space-y-1">
                 <div><span class="font-semibold">IP:</span> ${d.ip}</div>
-                <div><span class="font-semibold">设备:</span> ${d.device} (${d.device_detail})</div>
+                <div><span class="font-semibold">设备:</span> ${d.device}</div>
                 <div><span class="font-semibold">地区:</span> ${d.area}</div>
-                <div><span class="font-semibold">VPN:</span> ${d.vpn_status === 1 ? '开启' : '关闭'} | <span class="font-semibold">VIP:</span> ${vipStatusLabel(d.vip_status)}</div>
-                ${d.vip_status > 0 ? `<div><span class="font-semibold">VIP过期:</span> ${d.vip_expire_date || '-'} (${d.vip_expire_days}天)</div>` : ''}
-                ${d.ad_showed > 0 || d.ad_clicked > 0 ? `<div><span class="font-semibold">广告:</span> 展示 ${d.ad_showed} | 点击 ${d.ad_clicked}</div>` : ''}
+                <div><span class="font-semibold">VPN:</span> ${d.vpn_status === 1 ? '开启' : '关闭'}</div>
                 ${d.body ? `<div><span class="font-semibold">Body:</span> ${formatBodyContent(d.body)}</div>` : ''}
-            </div>
-        `;
-        html+=`<tr>
-            <td style="text-align: left;">${d.log_time}</td>
-            <td style="text-align: center;">${d.name}</td>
-            <td style="text-align: left;">${detailHtml}</td>
-        </tr>`;
+            </div>`;
+        html+=`<tr><td style="text-align: left;">${d.log_time}</td><td style="text-align: center;">${d.name}</td><td style="text-align: left;">${detailHtml}</td></tr>`;
     });
     html+="</tbody></table>";
     box.innerHTML=html;
 }
 
-
-// 单用户数据详情抽屉 (修改：存储数据并调用通用渲染)
 function openDrawerWithData(list){
     document.getElementById("drawerTitle").textContent = "用户详情";
-    document.getElementById("drawerControls").classList.remove("hidden"); // 显示搜索/排序
-
-    // 存储数据和重置排序状态
+    document.getElementById("drawerControls").classList.remove("hidden");
     currentDrawerData = list;
-    drawerSearchInput.value = ''; // 🌟 修改2: 清空搜索框
-    sortOrder = 'desc'; // 默认降序
-    drawerSortBtn.textContent = '按时间 ↓';
-
-    // 默认排序并渲染
+    drawerSearchInput.value = '';
+    sortOrder = 'desc';
     currentDrawerData.sort((a, b) => new Date(b.log_time) - new Date(a.log_time));
     renderDrawerContent(currentDrawerData);
-
     drawer.classList.add("open");
     overlay.classList.add("show");
 }
 
-// 统计用户列表抽屉
 function openDrawerWithUserIds(list, title) {
     document.getElementById("drawerTitle").textContent = title;
-    document.getElementById("drawerControls").classList.add("hidden"); // 隐藏搜索/排序
-
-    // 清空数据缓存，避免混淆
-    currentDrawerData = [];
-
+    document.getElementById("drawerControls").classList.add("hidden");
     const box = document.getElementById("drawerContent");
-    let html = `<table class="ant-table"><thead><tr>
-        <th>UserID</th><th>国家</th><th>设备</th><th>VIP</th><th>最后记录时间</th></tr></thead><tbody>`;
-    // 🌟 修改5: 渲染更多信息
+    let html = `<table class="ant-table"><thead><tr><th>UserID</th><th>国家</th><th>最后时间</th></tr></thead><tbody>`;
     list.forEach(d => {
-        html += `<tr>
-            <td>${d.user_id}</td>
-            <td>${d.country_code}</td>
-            <td>${d.device}</td>
-            <td>${vipStatusLabel(d.vip_status)}</td>
-            <td>${d.log_time}</td>
-        </tr>`;
+        html += `<tr><td>${d.user_id}</td><td>${d.country_code}</td><td>${d.log_time}</td></tr>`;
     });
     html += "</tbody></table>";
     box.innerHTML = html;
-
     drawer.classList.add("open");
     overlay.classList.add("show");
 }
