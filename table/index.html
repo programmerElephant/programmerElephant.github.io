@@ -166,6 +166,15 @@
     </div>
 
     <div>
+      <p class="text-gray-600 text-sm mb-1">平台筛选</p>
+      <div id="platformSelector" class="flex gap-2">
+        <div class="ant-selector active" data-platform="">全部</div>
+        <div class="ant-selector" data-platform="android">Android</div>
+        <div class="ant-selector" data-platform="ios">iOS</div>
+      </div>
+    </div>
+
+    <div>
       <p class="text-gray-600 text-sm mb-1">开始日期</p>
       <input id="startDate" type="date" class="ant-input w-40">
     </div>
@@ -243,147 +252,16 @@
 </div>
 
 <script>
-// --- 国家名称映射表 ---
+// --- 国家名称映射表 (保持不变) ---
 const countryNameMap = {
-  // ===== 亚洲 =====
-  "CN": "中国",
-  "HK": "中国香港",
-  "TW": "中国台湾",
-  "MO": "中国澳门",
-  "JP": "日本",
-  "KR": "韩国",
-  "KP": "朝鲜",
-  "IN": "印度",
-  "PK": "巴基斯坦",
-  "BD": "孟加拉国",
-  "LK": "斯里兰卡",
-  "NP": "尼泊尔",
-  "BT": "不丹",
-  "MM": "缅甸",
-  "TH": "泰国",
-  "VN": "越南",
-  "LA": "老挝",
-  "KH": "柬埔寨",
-  "MY": "马来西亚",
-  "SG": "新加坡",
-  "ID": "印尼",
-  "PH": "菲律宾",
-  "BN": "文莱",
-  "MN": "蒙古",
-  "KZ": "哈萨克斯坦",
-  "UZ": "乌兹别克斯坦",
-  "TM": "土库曼斯坦",
-  "KG": "吉尔吉斯斯坦",
-  "TJ": "塔吉克斯坦",
-
-  // ===== 中东 =====
-  "TR": "土耳其",
-  "SA": "沙特阿拉伯",
-  "AE": "阿联酋",
-  "IR": "伊朗",
-  "IQ": "伊拉克",
-  "IL": "以色列",
-  "JO": "约旦",
-  "LB": "黎巴嫩",
-  "SY": "叙利亚",
-  "KW": "科威特",
-  "QA": "卡塔尔",
-  "BH": "巴林",
-  "OM": "阿曼",
-  "YE": "也门",
-
-  // ===== 欧洲 =====
-  "GB": "英国",
-  "IE": "爱尔兰",
-  "FR": "法国",
-  "DE": "德国",
-  "IT": "意大利",
-  "ES": "西班牙",
-  "PT": "葡萄牙",
-  "NL": "荷兰",
-  "BE": "比利时",
-  "LU": "卢森堡",
-  "CH": "瑞士",
-  "AT": "奥地利",
-  "SE": "瑞典",
-  "NO": "挪威",
-  "DK": "丹麦",
-  "FI": "芬兰",
-  "IS": "冰岛",
-  "PL": "波兰",
-  "CZ": "捷克",
-  "SK": "斯洛伐克",
-  "HU": "匈牙利",
-  "RO": "罗马尼亚",
-  "BG": "保加利亚",
-  "GR": "希腊",
-  "HR": "克罗地亚",
-  "SI": "斯洛文尼亚",
-  "RS": "塞尔维亚",
-  "BA": "波黑",
-  "ME": "黑山",
-  "MK": "北马其顿",
-  "AL": "阿尔巴尼亚",
-  "UA": "乌克兰",
-  "BY": "白俄罗斯",
-  "LT": "立陶宛",
-  "LV": "拉脱维亚",
-  "EE": "爱沙尼亚",
-
-  // ===== 北美 =====
-  "US": "美国",
-  "CA": "加拿大",
-  "MX": "墨西哥",
-
-  // ===== 南美 =====
-  "BR": "巴西",
-  "AR": "阿根廷",
-  "CL": "智利",
-  "CO": "哥伦比亚",
-  "PE": "秘鲁",
-  "VE": "委内瑞拉",
-  "EC": "厄瓜多尔",
-  "BO": "玻利维亚",
-  "PY": "巴拉圭",
-  "UY": "乌拉圭",
-
-  // ===== 非洲 =====
-  "EG": "埃及",
-  "ZA": "南非",
-  "NG": "尼日利亚",
-  "KE": "肯尼亚",
-  "ET": "埃塞俄比亚",
-  "TZ": "坦桑尼亚",
-  "UG": "乌干达",
-  "GH": "加纳",
-  "CI": "科特迪瓦",
-  "SN": "塞内加尔",
-  "DZ": "阿尔及利亚",
-  "MA": "摩洛哥",
-  "TN": "突尼斯",
-  "LY": "利比亚",
-  "SD": "苏丹",
-
-  // ===== 大洋洲 =====
-  "AU": "澳大利亚",
-  "NZ": "新西兰",
-  "PG": "巴布亚新几内亚",
-  "FJ": "斐济",
-  "SB": "所罗门群岛",
-
-  // ===== 其他 / 常见特殊 =====
-  "RU": "俄罗斯",
-  "AF": "阿富汗",
-  "AM": "亚美尼亚",
-  "AZ": "阿塞拜疆",
-  "GE": "格鲁吉亚",
-  "MD": "摩尔多瓦"
+  "CN": "中国", "HK": "中国香港", "TW": "中国台湾", "MO": "中国澳门", "JP": "日本", "KR": "韩国", "KP": "朝鲜", "IN": "印度", "PK": "巴基斯坦", "BD": "孟加拉国", "LK": "斯里兰卡", "NP": "尼泊尔", "BT": "不丹", "MM": "缅甸", "TH": "泰国", "VN": "越南", "LA": "老挝", "KH": "柬埔寨", "MY": "马来西亚", "SG": "新加坡", "ID": "印尼", "PH": "菲律宾", "BN": "文莱", "MN": "蒙古", "KZ": "哈萨克斯坦", "UZ": "乌兹别克斯坦", "TM": "土库曼斯坦", "KG": "吉尔吉斯斯坦", "TJ": "塔吉克斯坦", "TR": "土耳其", "SA": "沙特阿拉伯", "AE": "阿联酋", "IR": "伊朗", "IQ": "伊拉克", "IL": "以色列", "JO": "约旦", "LB": "黎巴嫩", "SY": "叙利亚", "KW": "科威特", "QA": "卡塔尔", "BH": "巴林", "OM": "阿曼", "YE": "也门", "GB": "英国", "IE": "爱尔兰", "FR": "法国", "DE": "德国", "IT": "意大利", "ES": "西班牙", "PT": "葡萄牙", "NL": "荷兰", "BE": "比利时", "LU": "卢森堡", "CH": "瑞士", "AT": "奥地利", "SE": "瑞典", "NO": "挪威", "DK": "丹麦", "FI": "芬兰", "IS": "冰岛", "PL": "波兰", "CZ": "捷克", "SK": "斯洛伐克", "HU": "匈牙利", "RO": "罗马尼亚", "BG": "保加利亚", "GR": "希腊", "HR": "克罗地亚", "SI": "斯洛文尼亚", "RS": "塞尔维亚", "BA": "波黑", "ME": "黑山", "MK": "北马其顿", "AL": "阿尔巴尼亚", "UA": "乌克兰", "BY": "白俄罗斯", "LT": "立陶宛", "LV": "拉脱维亚", "EE": "爱沙尼亚", "US": "美国", "CA": "加拿大", "MX": "墨西哥", "BR": "巴西", "AR": "阿根廷", "CL": "智利", "CO": "哥伦比亚", "PE": "秘鲁", "VE": "委内瑞拉", "EC": "厄瓜多尔", "BO": "玻利维亚", "PY": "巴拉圭", "UY": "乌拉圭", "EG": "埃及", "ZA": "南非", "NG": "尼日利亚", "KE": "肯尼亚", "ET": "埃塞俄比亚", "TZ": "坦桑尼亚", "UG": "乌干达", "GH": "加纳", "CI": "科特迪瓦", "SN": "塞内加尔", "DZ": "阿尔及利亚", "MA": "摩洛哥", "TN": "突尼斯", "LY": "利比亚", "SD": "苏丹", "AU": "澳大利亚", "NZ": "新西兰", "PG": "巴布亚新几内亚", "FJ": "斐济", "SB": "所罗门群岛", "RU": "俄罗斯", "AF": "阿富汗", "AM": "亚美尼亚", "AZ": "阿塞拜疆", "GE": "格鲁吉亚", "MD": "摩尔多瓦"
 };
 
 
 let selectedApp = {name:"VPN Proxy", table:"vpnproxy"};
 let selectedCountry = "";
 let selectedAction = "userIds";
+let selectedPlatform = ""; // 新增：全局平台变量
 
 let userStats = { install: [], buy: [], cancel: [], refund: [], userIds: [] };
 let currentAllUserList = [];
@@ -398,9 +276,24 @@ const userListSortBtn = document.getElementById("userListSortBtn");
 const drawerSortBtn = document.getElementById("drawerSortBtn");
 const drawerSearchInput = document.getElementById("drawerSearch");
 
+/**
+ * 新增工具函数：应用平台筛选参数
+ */
+function applyPlatformParam(urlObj) {
+    if (selectedPlatform) {
+        urlObj.searchParams.append("platform", selectedPlatform);
+    }
+    return urlObj;
+}
+
 // --- 自动获取国家接口并渲染 ---
 async function initCountries() {
-    const url = "https://analyze.yuanma.live/event?&action=countries&adminId=&table=lumotalk";
+    let url = new URL("https://analyze.yuanma.live/event");
+    url.searchParams.append("action", "countries");
+    url.searchParams.append("adminId", "");
+    url.searchParams.append("table", "lumotalk");
+    url = applyPlatformParam(url); // 应用平台参数
+
     const selectorContainer = document.getElementById("countrySelector");
     
     try {
@@ -408,7 +301,6 @@ async function initCountries() {
         const res = await response.json();
         
         if (res.success && res.data) {
-            // 渲染“全部” + 接口返回的国家
             renderCountrySelectors(res.data);
         } else {
             selectorContainer.innerHTML = '<div class="ant-selector active" data-value="">全部</div>';
@@ -421,24 +313,20 @@ async function initCountries() {
 
 function renderCountrySelectors(countries) {
     const container = document.getElementById("countrySelector");
-    // 1. 手动添加全部
     let html = `<div class="ant-selector active" data-value="">全部</div>`;
     
-    // 2. 遍历接口数据
     countries.forEach(code => {
-        const name = countryNameMap[code] || code; // 如果找不到对应名称，则显示代码本身
+        const name = countryNameMap[code] || code;
         html += `<div class="ant-selector" data-value="${code}">${name}</div>`;
     });
     
     container.innerHTML = html;
 
-    // 3. 重新绑定点击事件
     container.querySelectorAll(".ant-selector").forEach(btn => {
         btn.onclick = () => {
             container.querySelectorAll(".ant-selector").forEach(b => b.classList.remove("active"));
             btn.classList.add("active");
             selectedCountry = btn.dataset.value;
-            console.log("当前选择国家:", selectedCountry);
         };
     });
 }
@@ -448,6 +336,18 @@ window.onload = function() {
     setToday();
     initCountries();
 };
+
+/**
+ * 平台筛选点击事件处理
+ */
+document.querySelectorAll("#platformSelector .ant-selector").forEach(btn => {
+    btn.onclick = () => {
+        document.querySelectorAll("#platformSelector .ant-selector").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        selectedPlatform = btn.dataset.platform;
+        console.log("当前选择平台:", selectedPlatform || "全部");
+    };
+});
 
 function getAdjustedDateRange(startDateStr, endDateStr, country) {
     const formatDateTime = (date) => {
@@ -463,10 +363,6 @@ function getAdjustedDateRange(startDateStr, endDateStr, country) {
     let start = new Date(startDateStr);
     let end = new Date(endDateStr);
     
-    console.log("调整时间国家为",country)
-    
-    // 这里的逻辑对应你要求的 TR(土耳其) 等代码转换逻辑
-    // 0 是土耳其旧代码，TR 是新代码
     if (country === "0" || country === "1" || country === "TR" || country === "SA") {
         start.setHours(5, 0, 0, 0);
         end.setHours(0, 0, 0, 0);
@@ -562,7 +458,7 @@ document.getElementById("fetchBtn").onclick = async ()=>{
       return alert("请输入用户ID");
   }
 
-  const url=new URL("https://analyze.yuanma.live/event");
+  let url=new URL("https://analyze.yuanma.live/event");
   url.searchParams.append("table",selectedApp.table);
   url.searchParams.append("action",selectedAction);
   url.searchParams.append("adminId",admin);
@@ -574,6 +470,8 @@ document.getElementById("fetchBtn").onclick = async ()=>{
 
   if(selectedAction==="userData")
     url.searchParams.append("userId",document.getElementById("userIdInput").value);
+
+  url = applyPlatformParam(url); // 应用平台参数
 
   try {
       const res=await fetch(url);
@@ -597,7 +495,7 @@ async function fetchStats(adminId, startDateTime, endDateTime) {
     const table = selectedApp.table;
 
     const promises = actions.map(action => {
-        const url = new URL("https://analyze.yuanma.live/event");
+        let url = new URL("https://analyze.yuanma.live/event");
         url.searchParams.append("table", table);
         url.searchParams.append("action", action);
         url.searchParams.append("adminId", adminId);
@@ -611,6 +509,8 @@ async function fetchStats(adminId, startDateTime, endDateTime) {
         if(actionMap[action]) {
              url.searchParams.append("name", actionMap[action]);
         }
+
+        url = applyPlatformParam(url); // 应用平台参数
 
         return fetch(url).then(res => res.json()).then(data => ({ action, data }))
           .catch(error => ({ action, data: [] }));
@@ -734,7 +634,7 @@ function renderUserList(list){
   list.forEach(d=>{
     html+=`<tr><td>${d.user_id}</td><td>${d.country_code}</td><td>${d.device}</td>
       <td>${vipStatusLabel(d.vip_status)}</td>
-      <td>${d.log_time}</td>
+      <td>${(d.log_time || "N/A")}</td>
       <td><button class="ant-btn openUserBtn" data-id="${d.user_id}">打开</button></td></tr>`;
   });
   html+="</tbody></table>";
@@ -747,11 +647,14 @@ function renderUserList(list){
 
 async function fetchUser(uid){
   const admin=document.getElementById("adminId").value.trim();
-  const url=new URL("https://analyze.yuanma.live/event");
+  let url=new URL("https://analyze.yuanma.live/event");
   url.searchParams.append("action","userData");
   url.searchParams.append("table",selectedApp.table);
   url.searchParams.append("adminId",admin);
   url.searchParams.append("userId",uid);
+  
+  url = applyPlatformParam(url); // 应用平台参数
+
   try {
       const res=await fetch(url);
       openDrawerWithData(await res.json());
