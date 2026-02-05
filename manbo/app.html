@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>曼波记账 - 专属您的理财追踪器</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --mambo-bg: #F9EFE0;
+            --mambo-brown: #4A3427;
+            --mambo-accent: #E8A85A;
+        }
+        body {
+            background-color: var(--mambo-bg);
+            color: var(--mambo-brown);
+            font-family: 'Noto Sans SC', sans-serif;
+            scroll-behavior: smooth;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(10px);
+            border-radius: 28px;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .glass-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(74, 52, 39, 0.1);
+        }
+        .download-btn {
+            background: var(--mambo-brown);
+            color: #F9EFE0;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .download-btn:hover {
+            background: #2D1F17;
+            transform: scale(1.05);
+        }
+        .hero-gradient {
+            background: radial-gradient(circle at top right, rgba(232, 168, 90, 0.25), transparent);
+        }
+        .qr-container {
+            background: white;
+            padding: 12px;
+            border-radius: 18px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        /* 针对图片未加载的处理 */
+        img { background-color: rgba(0,0,0,0.02); }
+    </style>
+</head>
+<body class="hero-gradient">
+
+    <nav class="p-6 flex justify-between items-center max-w-7xl mx-auto">
+        <div class="text-2xl font-black tracking-tighter flex items-center gap-2">
+            <span class="w-8 h-8 bg-[#4A3427] rounded-lg"></span> 曼波记账
+        </div>
+        <a href="#download" class="download-btn px-6 py-2 rounded-full font-bold text-sm">下载应用</a>
+    </nav>
+
+    <header class="max-w-7xl mx-auto px-6 pt-16 pb-24 text-center">
+        <h1 class="text-5xl md:text-8xl font-black mb-8 animate__animated animate__fadeInDown tracking-tight">
+            曼波，专属您的<br><span class="text-[#E8A85A]">理财追踪器</span>
+        </h1>
+        <p class="text-lg md:text-xl opacity-70 mb-12 animate__animated animate__fadeInUp animate__delay-1s">
+            前沿理财分析 · 极简记账体验 · 随心定义你的色彩
+        </p>
+        <div class="relative inline-block animate__animated animate__zoomIn animate__delay-1s">
+            <img src="1.jpg" alt="曼波记账预览" class="w-72 md:w-96 rounded-[3.5rem] shadow-2xl border-[12px] border-white">
+            <div class="absolute -bottom-8 -right-8 bg-white p-6 rounded-3xl shadow-xl hidden md:block">
+                <p class="text-xs font-bold text-gray-400 text-left">月度支出</p>
+                <p class="text-2xl font-black text-[#4A3427]">¥124.51</p>
+                <div class="w-32 h-2 bg-gray-100 rounded-full mt-2 overflow-hidden">
+                    <div class="bg-orange-400 h-full w-[75%]"></div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <section class="max-w-7xl mx-auto px-6 py-20">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+            
+            <div class="glass-card p-10 md:col-span-8 overflow-hidden relative group">
+                <h3 class="text-3xl font-black mb-4">获取强大的理财分析</h3>
+                <p class="opacity-60 mb-8 max-w-md">通过多维度趋势图与收支分布，一眼看穿你的钱都去哪了。</p>
+                <img src="2.jpg" class="w-full rounded-2xl shadow-lg transform group-hover:scale-105 transition-transform duration-500" alt="理财分析">
+            </div>
+
+            <div class="glass-card p-10 md:col-span-4 bg-white/40">
+                <h3 class="text-3xl font-black mb-4">制定预算</h3>
+                <p class="opacity-60 mb-8">智能超支预警，帮你守住钱袋子。</p>
+                <img src="3.jpg" class="w-full rounded-2xl shadow-lg" alt="预算详情">
+            </div>
+
+            <div class="glass-card p-10 md:col-span-5 flex flex-col items-center text-center">
+                <div class="w-20 h-20 bg-gradient-to-tr from-purple-400 via-pink-400 to-orange-400 rounded-full mb-6 animate-pulse"></div>
+                <h3 class="text-3xl font-black mb-4">自定义你的风格</h3>
+                <p class="opacity-60 mb-8">不管是多巴胺色系还是深色模式，曼波都能满足你的审美。</p>
+                <img src="4.jpg" class="w-full h-64 object-cover rounded-2xl" alt="主题色选择">
+            </div>
+
+            <div class="glass-card p-10 md:col-span-7 flex flex-col justify-center">
+                <h3 class="text-3xl font-black mb-4">开始制定预算吧！</h3>
+                <p class="opacity-60 text-xl">简单、快速、优雅。<br>让记账不再是一项负担，而是一种生活美学。</p>
+                <div class="mt-8 flex gap-4">
+                    <span class="px-4 py-2 bg-white rounded-full text-sm font-bold shadow-sm">#便捷</span>
+                    <span class="px-4 py-2 bg-white rounded-full text-sm font-bold shadow-sm">#美观</span>
+                    <span class="px-4 py-2 bg-white rounded-full text-sm font-bold shadow-sm">#安全</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="download" class="max-w-7xl mx-auto px-6 py-24">
+        <div class="bg-white rounded-[4rem] p-12 md:p-20 text-center shadow-xl border border-orange-100 relative overflow-hidden">
+            <h2 class="text-4xl md:text-5xl font-black mb-6">立即下载曼波记账</h2>
+            <p class="opacity-50 mb-16 text-lg text-balance">支持主流安卓应用市场，点击下方按钮或扫码跳转</p>
+            
+            <div class="grid grid-cols-2 lg:grid-cols-5 gap-10">
+                
+                <div class="flex flex-col items-center gap-4">
+                    <div class="qr-container">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://sj.qq.com/appdetail?pkgName=YOUR_PACKAGE_NAME" class="w-24 h-24" alt="应用宝">
+                    </div>
+                    <span class="font-bold">应用宝</span>
+                    <a href="https://sj.qq.com/appdetail?pkgName=YOUR_PACKAGE_NAME" class="download-btn w-full py-3 rounded-2xl text-xs font-bold">立即下载</a>
+                </div>
+
+                <div class="flex flex-col items-center gap-4">
+                    <div class="qr-container">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://app.mi.com/details?id=YOUR_XIAOMI_ID" class="w-24 h-24" alt="小米">
+                    </div>
+                    <span class="font-bold">小米商店</span>
+                    <a href="http://app.mi.com/details?id=2882303761520497179" class="download-btn w-full py-3 rounded-2xl text-xs font-bold">立即下载</a>
+                </div>
+
+                <div class="flex flex-col items-center gap-4">
+                    <div class="qr-container">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://app.cdo.oppomobile.com/home/detail?app_id=YOUR_OPPO_ID" class="w-24 h-24" alt="OPPO">
+                    </div>
+                    <span class="font-bold">OPPO 商店</span>
+                    <a href="https://app.cdo.oppomobile.com/home/detail?app_id=36819110" class="download-btn w-full py-3 rounded-2xl text-xs font-bold">立即下载</a>
+                </div>
+
+                <div class="flex flex-col items-center gap-4">
+                    <div class="qr-container">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://h5.vivo.com.cn/appstore/detail?appId=YOUR_VIVO_ID" class="w-24 h-24" alt="VIVO">
+                    </div>
+                    <span class="font-bold">VIVO 商店</span>
+                    <a href="https://h5.vivo.com.cn/appstore/detail?appId=760652" class="download-btn w-full py-3 rounded-2xl text-xs font-bold">立即下载</a>
+                </div>
+
+                <div class="flex flex-col items-center gap-4">
+                    <div class="qr-container">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=market://details?id=YOUR_PACKAGE_NAME" class="w-24 h-24" alt="荣耀">
+                    </div>
+                    <span class="font-bold">荣耀商店</span>
+                    <a href="market://details?id=YOUR_PACKAGE_NAME" class="download-btn w-full py-3 rounded-2xl text-xs font-bold">立即下载</a>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <footer class="py-16 text-center">
+        <p class="opacity-30 text-sm font-medium">© 2024 曼波记账 Mambo Money. 让每一笔开支都有迹可循。</p>
+    </footer>
+
+</body>
+</html>
