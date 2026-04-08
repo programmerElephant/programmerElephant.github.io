@@ -4,11 +4,816 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>数据分析后台</title>
-  <meta name="color-scheme" content="dark">
+  <meta name="color-scheme" content="light">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css">
+  <style>
+:root {
+  --bg: #f5f5f7;
+  --bg-soft: #fbfbfd;
+  --surface: #ffffff;
+  --surface-muted: #f0f2f5;
+  --line: #e4e7ec;
+  --line-strong: #d6dae1;
+  --text: #111111;
+  --text-soft: #6e6e73;
+  --text-faint: #8f8f94;
+  --accent: #0071e3;
+  --accent-soft: #e8f3ff;
+  --success: #0a7f55;
+  --warning: #b86a00;
+  --danger: #b42318;
+  --shadow: 0 18px 50px rgba(17, 17, 17, 0.08);
+  --radius-xl: 32px;
+  --radius-lg: 24px;
+  --radius-md: 18px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.7), rgba(245, 245, 247, 0.98)),
+    var(--bg);
+  color: var(--text);
+  font-family: "Noto Sans SC", sans-serif;
+}
+
+[v-cloak] {
+  display: none;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+.shell {
+  width: min(100%, 100%);
+  margin: 0 auto;
+  padding: 20px 0 80px;
+}
+
+.topbar {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 20px;
+  margin: 0 auto 22px;
+  padding: 0 28px;
+}
+
+.topbar-label,
+.eyebrow,
+.section-kicker {
+  margin: 0;
+  color: var(--text-faint);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.topbar h1 {
+  margin: 6px 0 0;
+  font-size: clamp(1.6rem, 3vw, 2.6rem);
+  line-height: 0.98;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+}
+
+.topbar-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.topbar-meta span {
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(17, 17, 17, 0.06);
+  color: var(--text-soft);
+}
+
+.hero-grid {
+  display: grid;
+  grid-template-columns: 1.8fr 1fr;
+  gap: 18px;
+  margin-bottom: 22px;
+  padding: 0 12px;
+}
+
+.hero-card {
+  border-radius: 36px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+.hero-card-primary {
+  min-height: 320px;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background:
+    radial-gradient(circle at top right, rgba(0, 113, 227, 0.22), transparent 24%),
+    linear-gradient(180deg, #f8fbff 0%, #ffffff 46%, #f4f5f7 100%);
+}
+
+.hero-art h2 {
+  max-width: 920px;
+  margin: 10px 0 0;
+  font-size: clamp(1.9rem, 4vw, 3.3rem);
+  line-height: 0.98;
+  letter-spacing: -0.045em;
+}
+
+.hero-text {
+  max-width: 700px;
+  margin: 18px 0 0;
+  color: var(--text-soft);
+  font-size: 0.96rem;
+  line-height: 1.75;
+}
+
+.hero-feature-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  max-width: 760px;
+}
+
+.hero-feature {
+  padding: 16px 18px;
+  border-radius: 26px;
+  background: rgba(255, 255, 255, 0.76);
+  border: 1px solid rgba(17, 17, 17, 0.06);
+  backdrop-filter: blur(12px);
+}
+
+.hero-feature span {
+  display: block;
+  color: var(--text-faint);
+  margin-bottom: 10px;
+}
+
+.hero-feature strong {
+  font-size: 1rem;
+}
+
+.hero-card-side {
+  padding: 24px;
+  background: linear-gradient(180deg, #ffffff 0%, #f6f7f9 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.hero-card-side h3,
+.editorial-card h3,
+.section h2,
+.drawer h2 {
+  margin: 10px 0 0;
+  font-size: 1.25rem;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
+
+.hero-card-side p,
+.editorial-card p {
+  color: var(--text-soft);
+  line-height: 1.7;
+}
+
+.hero-side-number {
+  margin: 12px 0 0;
+  font-size: clamp(1.3rem, 2.8vw, 2rem);
+  line-height: 1;
+  letter-spacing: -0.05em;
+  color: var(--text);
+}
+
+.hero-points {
+  margin: 18px 0 0;
+  padding-left: 18px;
+  color: var(--text-soft);
+  line-height: 1.9;
+}
+
+.layout {
+  display: grid;
+  gap: 18px;
+  padding: 0 12px;
+}
+
+.panel {
+  position: relative;
+  border: 1px solid rgba(17, 17, 17, 0.06);
+  border-radius: var(--radius-xl);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.section {
+  padding: 30px;
+}
+
+.section-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.section-head.compact {
+  margin-bottom: 18px;
+}
+
+.segmented-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.segmented-button,
+.chip,
+.ghost-button,
+.primary-button,
+.icon-button {
+  transition: all 180ms ease;
+}
+
+.segmented-button {
+  padding: 18px 20px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: var(--bg-soft);
+  text-align: left;
+  color: var(--text);
+}
+
+.segmented-button:hover,
+.chip:hover,
+.ghost-button:hover,
+.primary-button:hover,
+.icon-button:hover,
+.stat-card:hover {
+  transform: translateY(-1px);
+}
+
+.segmented-button span,
+.segmented-button small {
+  display: block;
+}
+
+.segmented-button span {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.segmented-button small {
+  margin-top: 8px;
+  color: var(--text-faint);
+}
+
+.segmented-button.active {
+  border-color: rgba(0, 113, 227, 0.18);
+  background: linear-gradient(180deg, #f5faff 0%, #eef6ff 100%);
+  color: #0b3a75;
+}
+
+.segmented-button.active span {
+  color: #0b3a75;
+}
+
+.segmented-button.active small {
+  color: #4d76a8;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.field {
+  display: grid;
+  gap: 10px;
+}
+
+.field.grow {
+  flex: 1;
+}
+
+.field span {
+  font-size: 0.84rem;
+  color: var(--text-soft);
+}
+
+.field input {
+  width: 100%;
+  height: 52px;
+  padding: 0 16px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--text);
+}
+
+.field input:focus {
+  outline: none;
+  border-color: rgba(0, 113, 227, 0.36);
+  box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.08);
+}
+
+.filter-block + .filter-block {
+  margin-top: 18px;
+}
+
+.filter-label {
+  margin-bottom: 10px;
+  color: var(--text-soft);
+}
+
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.chip,
+.ghost-button,
+.primary-button,
+.icon-button {
+  border-radius: 999px;
+}
+
+.chip {
+  min-height: 42px;
+  padding: 0 16px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--text-soft);
+}
+
+.chip.active {
+  background: var(--accent-soft);
+  border-color: rgba(0, 113, 227, 0.16);
+  color: var(--accent);
+}
+
+.ghost-button,
+.primary-button {
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid transparent;
+}
+
+.compact-button {
+  min-height: 38px;
+  padding: 0 14px;
+}
+
+.primary-button {
+  background: var(--accent);
+  color: #fff;
+}
+
+.primary-button:disabled {
+  opacity: 0.65;
+  cursor: progress;
+}
+
+.ghost-button,
+.icon-button {
+  background: var(--surface-muted);
+  color: var(--text);
+  border-color: transparent;
+}
+
+.toolbar {
+  display: flex;
+  gap: 12px;
+  align-items: end;
+}
+
+.feedback {
+  margin: 18px 0 0;
+  padding: 13px 15px;
+  border-radius: 16px;
+}
+
+.feedback.error {
+  background: #fff0ef;
+  color: var(--danger);
+  border: 1px solid #ffd3cf;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.stat-card {
+  padding: 24px;
+  border: 1px solid rgba(17, 17, 17, 0.06);
+  border-radius: 28px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8f9fb 100%);
+  text-align: left;
+  box-shadow: var(--shadow);
+}
+
+.stat-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--text-soft);
+}
+
+.stat-card strong {
+  display: block;
+  margin: 20px 0 8px;
+  font-size: clamp(1.2rem, 2.4vw, 1.8rem);
+  line-height: 1;
+  letter-spacing: -0.05em;
+}
+
+.stat-card p {
+  margin: 0;
+  color: var(--text-soft);
+}
+
+.tone-blue strong {
+  color: #0059b8;
+}
+
+.tone-green strong {
+  color: var(--success);
+}
+
+.tone-amber strong {
+  color: var(--warning);
+}
+
+.tone-red strong {
+  color: var(--danger);
+}
+
+.result-panel {
+  min-height: 280px;
+}
+
+.result-count {
+  color: var(--text-faint);
+}
+
+.table-wrap {
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+}
+
+.data-table {
+  width: 100%;
+  min-width: 720px;
+  border-collapse: collapse;
+}
+
+.data-table th,
+.data-table td {
+  padding: 16px 18px;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+}
+
+.data-table th {
+  color: var(--text-faint);
+  background: #fbfbfc;
+  font-weight: 600;
+}
+
+.data-table tr:hover td {
+  background: #fafcff;
+}
+
+.table-empty {
+  text-align: center;
+  color: var(--text-soft);
+}
+
+.results-stack,
+.mobile-cards,
+.event-list {
+  display: grid;
+  gap: 12px;
+}
+
+.mobile-card,
+.event-card,
+.editorial-card {
+  border: 1px solid rgba(17, 17, 17, 0.06);
+  border-radius: 26px;
+  background: #fff;
+  box-shadow: var(--shadow);
+}
+
+.mobile-card,
+.event-card {
+  padding: 18px;
+}
+
+.mobile-card-row,
+.event-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.mobile-card p,
+.mobile-card small,
+.event-card p,
+.event-card span,
+.event-body {
+  color: var(--text-soft);
+}
+
+.mobile-card p {
+  margin: 12px 0 6px;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  border: 1px solid transparent;
+}
+
+.pill.success {
+  color: var(--success);
+  background: #edf9f3;
+  border-color: #c8ecd8;
+}
+
+.pill.warning {
+  color: var(--warning);
+  background: #fff5e8;
+  border-color: #f7d7aa;
+}
+
+.pill.neutral {
+  color: #5a5b60;
+  background: #f2f3f5;
+  border-color: #e1e4e8;
+}
+
+.empty-state {
+  min-height: 180px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  color: var(--text-soft);
+}
+
+.spinner {
+  width: 42px;
+  height: 42px;
+  border: 2px solid #dbe1e8;
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.vip-summary {
+  min-height: 180px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+}
+
+.vip-summary strong {
+  display: block;
+  font-size: clamp(1.8rem, 5vw, 3rem);
+  line-height: 1;
+  letter-spacing: -0.06em;
+  color: var(--accent);
+}
+
+.vip-summary span {
+  margin-top: 8px;
+  color: var(--text-soft);
+}
+
+.editorial-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.editorial-card {
+  padding: 24px;
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.editorial-card h3 {
+  margin-top: 14px;
+  font-size: clamp(1.05rem, 2vw, 1.45rem);
+}
+
+.drawer-mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(17, 17, 17, 0.18);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 220ms ease;
+}
+
+.drawer-mask.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: min(740px, 100%);
+  height: 100%;
+  padding: 24px;
+  background: #f8f8fa;
+  border-left: 1px solid rgba(17, 17, 17, 0.08);
+  transform: translateX(100%);
+  transition: transform 240ms ease;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  z-index: 20;
+}
+
+.drawer.open {
+  transform: translateX(0);
+}
+
+.drawer-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.icon-button {
+  width: 42px;
+  height: 42px;
+  font-size: 1.4rem;
+}
+
+.drawer-toolbar {
+  padding-bottom: 4px;
+}
+
+.drawer-body {
+  overflow: auto;
+  padding-right: 2px;
+}
+
+.event-head span {
+  font-size: 0.86rem;
+}
+
+.event-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 18px;
+  margin-top: 14px;
+}
+
+.event-grid p,
+.event-body {
+  margin: 0;
+}
+
+.event-grid span,
+.event-body span {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--text-faint);
+  font-size: 0.8rem;
+}
+
+.event-body {
+  margin-top: 16px;
+}
+
+.event-body ul {
+  margin: 10px 0 0;
+  padding-left: 18px;
+}
+
+.desktop-only {
+  display: block;
+}
+
+.mobile-only {
+  display: none;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 1180px) {
+  .hero-grid,
+  .stats-grid,
+  .editorial-strip,
+  .form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .hero-card-primary {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 760px) {
+  .shell {
+    width: 100%;
+    padding-top: 18px;
+  }
+
+  .topbar,
+  .section-head,
+  .toolbar,
+  .drawer-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .hero-grid,
+  .stats-grid,
+  .editorial-strip,
+  .form-grid,
+  .segmented-grid,
+  .hero-feature-list,
+  .event-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .topbar,
+  .hero-grid,
+  .layout {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .section,
+  .hero-card-primary,
+  .hero-card-side {
+    padding: 22px;
+  }
+
+  .topbar h1 {
+    font-size: 2rem;
+  }
+
+  .desktop-only {
+    display: none;
+  }
+
+  .mobile-only {
+    display: grid;
+  }
+
+  .drawer {
+    width: 100%;
+    padding: 18px;
+  }
+}
+
+</style>
 </head>
 <body>
   <div id="app" v-cloak>
@@ -370,6 +1175,574 @@
     </aside>
   </div>
 
-  <script type="module" src="./app.js"></script>
+  <script type="module">
+import { computed, createApp, reactive, ref } from "https://unpkg.com/vue@3/dist/vue.esm-browser.prod.js";
+
+const API_BASE_URL = "https://analyze.yuanma.live/event";
+
+const countryNameMap = {
+  CN: "中国", HK: "中国香港", TW: "中国台湾", MO: "中国澳门", JP: "日本", KR: "韩国", KP: "朝鲜", IN: "印度", PK: "巴基斯坦",
+  BD: "孟加拉国", LK: "斯里兰卡", NP: "尼泊尔", BT: "不丹", MM: "缅甸", TH: "泰国", VN: "越南", LA: "老挝", KH: "柬埔寨",
+  MY: "马来西亚", SG: "新加坡", ID: "印尼", PH: "菲律宾", BN: "文莱", MN: "蒙古", KZ: "哈萨克斯坦", UZ: "乌兹别克斯坦",
+  TM: "土库曼斯坦", KG: "吉尔吉斯斯坦", TJ: "塔吉克斯坦", TR: "土耳其", SA: "沙特阿拉伯", AE: "阿联酋", IR: "伊朗",
+  IQ: "伊拉克", IL: "以色列", JO: "约旦", LB: "黎巴嫩", SY: "叙利亚", KW: "科威特", QA: "卡塔尔", BH: "巴林", OM: "阿曼",
+  YE: "也门", GB: "英国", IE: "爱尔兰", FR: "法国", DE: "德国", IT: "意大利", ES: "西班牙", PT: "葡萄牙", NL: "荷兰",
+  BE: "比利时", LU: "卢森堡", CH: "瑞士", AT: "奥地利", SE: "瑞典", NO: "挪威", DK: "丹麦", FI: "芬兰", IS: "冰岛",
+  PL: "波兰", CZ: "捷克", SK: "斯洛伐克", HU: "匈牙利", RO: "罗马尼亚", BG: "保加利亚", GR: "希腊", HR: "克罗地亚",
+  SI: "斯洛文尼亚", RS: "塞尔维亚", BA: "波黑", ME: "黑山", MK: "北马其顿", AL: "阿尔巴尼亚", UA: "乌克兰",
+  BY: "白俄罗斯", LT: "立陶宛", LV: "拉脱维亚", EE: "爱沙尼亚", US: "美国", CA: "加拿大", MX: "墨西哥", BR: "巴西",
+  AR: "阿根廷", CL: "智利", CO: "哥伦比亚", PE: "秘鲁", VE: "委内瑞拉", EC: "厄瓜多尔", BO: "玻利维亚", PY: "巴拉圭",
+  UY: "乌拉圭", EG: "埃及", ZA: "南非", NG: "尼日利亚", KE: "肯尼亚", ET: "埃塞俄比亚", TZ: "坦桑尼亚", UG: "乌干达",
+  GH: "加纳", CI: "科特迪瓦", SN: "塞内加尔", DZ: "阿尔及利亚", MA: "摩洛哥", TN: "突尼斯", LY: "利比亚", SD: "苏丹",
+  AU: "澳大利亚", NZ: "新西兰", PG: "巴布亚新几内亚", FJ: "斐济", SB: "所罗门群岛", RU: "俄罗斯", AF: "阿富汗",
+  AM: "亚美尼亚", AZ: "阿塞拜疆", GE: "格鲁吉亚", MD: "摩尔多瓦"
+};
+
+const apps = [
+  { name: "VPN Proxy", table: "vpnproxy" },
+  { name: "LumoTalk", table: "lumotalk" },
+  { name: "Manbo", table: "manbo" }
+];
+
+const platforms = [
+  { label: "全部", value: "" },
+  { label: "Android", value: "android" },
+  { label: "iOS", value: "ios" }
+];
+
+const actions = [
+  { label: "留存率", value: "retention" },
+  { label: "用户列表", value: "userIds" },
+  { label: "单用户数据", value: "userData" },
+  { label: "VIP 人数", value: "vipCount" }
+];
+
+const actionLabelMap = {
+  retention: "留存率",
+  userIds: "用户列表",
+  userData: "单用户数据",
+  vipCount: "VIP 人数"
+};
+
+function safeText(value, fallback = "") {
+  if (value === null || value === undefined || value === "") {
+    return fallback;
+  }
+  return String(value);
+}
+
+function formatDateTime(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  const seconds = String(date.getSeconds()).padStart(2, "0");
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+}
+
+function getAdjustedDateRange(startDateStr, endDateStr, country) {
+  const start = new Date(startDateStr);
+  const end = new Date(endDateStr);
+
+  if (country === "0" || country === "1" || country === "TR" || country === "SA") {
+    start.setHours(5, 0, 0, 0);
+    end.setHours(0, 0, 0, 0);
+    end.setDate(end.getDate() + 1);
+    end.setHours(4, 59, 59, 0);
+  } else {
+    start.setHours(0, 0, 0, 0);
+    end.setHours(23, 59, 59, 0);
+  }
+
+  return {
+    startDateTime: formatDateTime(start),
+    endDateTime: formatDateTime(end)
+  };
+}
+
+function getToday() {
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, "0");
+  const dd = String(today.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+createApp({
+  setup() {
+    const loading = ref(false);
+    const errorMessage = ref("");
+
+    const state = reactive({
+      selectedApp: apps[0],
+      selectedCountry: "",
+      selectedAction: "userIds",
+      selectedPlatform: "",
+      adminId: "",
+      startDate: getToday(),
+      endDate: getToday(),
+      userIdInput: "",
+      countries: [],
+      userStats: { install: [], buy: [], cancel: [], refund: [], userIds: [] },
+      currentAllUserList: [],
+      retentionData: [],
+      vipCountData: null,
+      userListSearch: "",
+      userSortField: "log_time",
+      userSortOrder: "desc",
+      drawerOpen: false,
+      drawerMode: "timeline",
+      drawerTitle: "用户详情",
+      drawerList: [],
+      drawerTimeline: [],
+      drawerSearch: "",
+      drawerSortOrder: "desc"
+    });
+
+    function createApiUrl(params = {}) {
+      const url = new URL(API_BASE_URL);
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          url.searchParams.append(key, value);
+        }
+      });
+
+      if (state.selectedPlatform) {
+        url.searchParams.append("platform", state.selectedPlatform);
+      }
+
+      return url;
+    }
+
+    async function fetchJson(url) {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(response.statusText || "请求失败");
+      }
+      return response.json();
+    }
+
+    async function initCountries() {
+      try {
+        const response = await fetchJson(
+          createApiUrl({
+            action: "countries",
+            adminId: "",
+            table: state.selectedApp.table
+          })
+        );
+
+        state.countries = response?.success && Array.isArray(response.data) ? response.data : [];
+        state.selectedCountry = "";
+      } catch (error) {
+        state.countries = [];
+      }
+    }
+
+    function setAction(action) {
+      state.selectedAction = action;
+      errorMessage.value = "";
+    }
+
+    async function changeApp(app) {
+      state.selectedApp = app;
+      await initCountries();
+    }
+
+    async function changePlatform(platformValue) {
+      state.selectedPlatform = platformValue;
+      await initCountries();
+    }
+
+    function vipText(status) {
+      if (status === 1) {
+        return "会员";
+      }
+      if (status === 2) {
+        return "过期";
+      }
+      return "普通";
+    }
+
+    function vipTone(status) {
+      if (status === 1) {
+        return "success";
+      }
+      if (status === 2) {
+        return "warning";
+      }
+      return "neutral";
+    }
+
+    function formatBodyContent(body) {
+      if (!body) {
+        return [];
+      }
+      return String(body)
+        .split("|")
+        .map((item) => item.trim())
+        .filter(Boolean);
+    }
+
+    function closeDrawer() {
+      state.drawerOpen = false;
+    }
+
+    function openTimelineDrawer(list, title = "用户详情") {
+      state.drawerTitle = title;
+      state.drawerMode = "timeline";
+      state.drawerSearch = "";
+      state.drawerSortOrder = "desc";
+      state.drawerTimeline = Array.isArray(list) ? [...list] : [];
+      state.drawerOpen = true;
+    }
+
+    function openListDrawer(list, title) {
+      state.drawerTitle = title;
+      state.drawerMode = "list";
+      state.drawerList = Array.isArray(list) ? list : [];
+      state.drawerOpen = true;
+    }
+
+    async function fetchStats(adminId, startDateTime, endDateTime) {
+      const actionMap = {
+        install: "install",
+        buy: "subscribe_page_success,guide_start_success",
+        cancel: "cancel",
+        refund: "refund",
+        userIds: null
+      };
+
+      const requests = Object.entries(actionMap).map(async ([action, name]) => {
+        try {
+          const data = await fetchJson(
+            createApiUrl({
+              table: state.selectedApp.table,
+              action,
+              adminId,
+              startDate: startDateTime,
+              endDate: endDateTime,
+              country: state.selectedCountry,
+              name
+            })
+          );
+          return { action, data: Array.isArray(data) ? data : [] };
+        } catch (error) {
+          return { action, data: [] };
+        }
+      });
+
+      const results = await Promise.all(requests);
+      results.forEach(({ action, data }) => {
+        state.userStats[action] = data;
+      });
+      state.currentAllUserList = state.userStats.userIds;
+    }
+
+    async function fetchUser(userId) {
+      if (!userId) {
+        return;
+      }
+
+      try {
+        const data = await fetchJson(
+          createApiUrl({
+            action: "userData",
+            table: state.selectedApp.table,
+            adminId: state.adminId,
+            userId
+          })
+        );
+        openTimelineDrawer(Array.isArray(data) ? data : []);
+      } catch (error) {
+        errorMessage.value = `详情失败: ${error.message}`;
+      }
+    }
+
+    async function handleFetch() {
+      errorMessage.value = "";
+
+      if (!state.adminId) {
+        errorMessage.value = "请输入管理员 ID";
+        return;
+      }
+
+      if (!state.startDate || !state.endDate) {
+        errorMessage.value = "请选择日期";
+        return;
+      }
+
+      if (state.selectedAction === "userData" && !state.userIdInput) {
+        errorMessage.value = "请输入用户 ID";
+        return;
+      }
+
+      loading.value = true;
+
+      const { startDateTime, endDateTime } = getAdjustedDateRange(
+        state.startDate,
+        state.endDate,
+        state.selectedCountry
+      );
+
+      try {
+        if (state.selectedAction === "userIds") {
+          await fetchStats(state.adminId, startDateTime, endDateTime);
+        } else {
+          const data = await fetchJson(
+            createApiUrl({
+              table: state.selectedApp.table,
+              action: state.selectedAction,
+              adminId: state.adminId,
+              startDate: startDateTime,
+              endDate: endDateTime,
+              country: state.selectedAction === "retention" ? state.selectedCountry : undefined,
+              userId: state.selectedAction === "userData" ? state.userIdInput : undefined
+            })
+          );
+
+          if (state.selectedAction === "retention") {
+            state.retentionData = Array.isArray(data) ? data : [];
+          } else if (state.selectedAction === "vipCount") {
+            state.vipCountData = data;
+          } else if (state.selectedAction === "userData") {
+            openTimelineDrawer(Array.isArray(data) ? data : []);
+          }
+        }
+      } catch (error) {
+        errorMessage.value = `查询失败: ${error.message}`;
+      } finally {
+        loading.value = false;
+      }
+    }
+
+    function toggleUserSort() {
+      const nextField = state.userSortField === "log_time" ? "vip_status" : "log_time";
+      const nextOrder = nextField === "vip_status"
+        ? "desc"
+        : state.userSortOrder === "desc"
+          ? "asc"
+          : "desc";
+
+      state.userSortField = nextField;
+      state.userSortOrder = nextOrder;
+    }
+
+    function toggleDrawerSort() {
+      state.drawerSortOrder = state.drawerSortOrder === "desc" ? "asc" : "desc";
+    }
+
+    function openUserIdDrawer(card) {
+      if (!card.items.length) {
+        errorMessage.value = `当前没有${card.label}`;
+        return;
+      }
+      openListDrawer(card.items, card.drawerTitle);
+    }
+
+    const countryOptions = computed(() => [
+      { label: "全部", value: "" },
+      ...state.countries.map((code) => ({
+        label: countryNameMap[code] || code,
+        value: code
+      }))
+    ]);
+
+    const filteredUserList = computed(() => {
+      const searchText = state.userListSearch.toLowerCase().trim();
+
+      return [...state.currentAllUserList]
+        .filter((item) => {
+          if (!searchText) {
+            return true;
+          }
+          return [
+            safeText(item.user_id).toLowerCase(),
+            safeText(item.country_code).toLowerCase(),
+            safeText(item.device).toLowerCase()
+          ].some((value) => value.includes(searchText));
+        })
+        .sort((left, right) => {
+          let leftValue;
+          let rightValue;
+
+          if (state.userSortField === "log_time") {
+            leftValue = new Date(left.log_time || 0).getTime();
+            rightValue = new Date(right.log_time || 0).getTime();
+          } else {
+            leftValue = left.vip_status ?? -1;
+            rightValue = right.vip_status ?? -1;
+          }
+
+          if (leftValue < rightValue) {
+            return state.userSortOrder === "asc" ? -1 : 1;
+          }
+          if (leftValue > rightValue) {
+            return state.userSortOrder === "asc" ? 1 : -1;
+          }
+          return 0;
+        });
+    });
+
+    const retentionRows = computed(() => state.retentionData.map((item) => {
+      const rate = Number(item.day1_rate || 0) * 100;
+      return {
+        date: item.period_start ? item.period_start.substring(0, 10) : "未知日期",
+        newUserCount: safeText(item.new_user_count, "0"),
+        day1Retention: safeText(item.day1_retention, "0"),
+        day1Rate: `${rate.toFixed(2)}%`
+      };
+    }));
+
+    const vipCountDisplay = computed(() => safeText(state.vipCountData?.count, "0"));
+
+    const statCards = computed(() => {
+      const installCount = state.userStats.install.length;
+      const buyCount = state.userStats.buy.length;
+      const cancelCount = state.userStats.cancel.length;
+      const refundCount = state.userStats.refund.length;
+      const userCount = state.userStats.userIds.length;
+      const buyRate = installCount > 0 ? `${(buyCount / installCount * 100).toFixed(2)}%` : "0.00%";
+      const cancelRate = buyCount > 0 ? `${(cancelCount / buyCount * 100).toFixed(2)}%` : "0.00%";
+      const refundRate = buyCount > 0 ? `${(refundCount / buyCount * 100).toFixed(2)}%` : "0.00%";
+
+      return [
+        {
+          key: "install",
+          label: "新用户数",
+          value: `${installCount}/${userCount}`,
+          rateLabel: "购买率",
+          rate: buyRate,
+          hint: "点击查看新用户",
+          tone: "tone-blue",
+          items: state.userStats.install,
+          drawerTitle: "新用户列表"
+        },
+        {
+          key: "buy",
+          label: "购买人数",
+          value: String(buyCount),
+          rateLabel: "转化率",
+          rate: buyRate,
+          hint: "点击查看购买用户",
+          tone: "tone-green",
+          items: state.userStats.buy,
+          drawerTitle: "购买用户列表"
+        },
+        {
+          key: "cancel",
+          label: "订单取消人数",
+          value: String(cancelCount),
+          rateLabel: "取消率",
+          rate: cancelRate,
+          hint: "点击查看取消用户",
+          tone: "tone-amber",
+          items: state.userStats.cancel,
+          drawerTitle: "取消用户列表"
+        },
+        {
+          key: "refund",
+          label: "退款人数",
+          value: String(refundCount),
+          rateLabel: "退款率",
+          rate: refundRate,
+          hint: "点击查看退款用户",
+          tone: "tone-red",
+          items: state.userStats.refund,
+          drawerTitle: "退款用户列表"
+        }
+      ];
+    });
+
+    const filteredDrawerTimeline = computed(() => {
+      const searchText = state.drawerSearch.toLowerCase().trim();
+      return [...state.drawerTimeline]
+        .filter((item) => {
+          if (!searchText) {
+            return true;
+          }
+          return [
+            safeText(item.name).toLowerCase(),
+            safeText(item.ip).toLowerCase(),
+            safeText(item.device).toLowerCase(),
+            safeText(item.body).toLowerCase()
+          ].some((value) => value.includes(searchText));
+        })
+        .sort((left, right) => {
+          const leftTime = new Date(left.log_time || 0).getTime();
+          const rightTime = new Date(right.log_time || 0).getTime();
+          return state.drawerSortOrder === "desc" ? rightTime - leftTime : leftTime - rightTime;
+        });
+    });
+
+    const userSortButtonLabel = computed(() => {
+      const label = state.userSortField === "log_time" ? "时间" : "VIP";
+      const icon = state.userSortOrder === "desc" ? "↓" : "↑";
+      return `按${label} ${icon}`;
+    });
+
+    const drawerSortButtonLabel = computed(() => `按时间 ${state.drawerSortOrder === "desc" ? "↓" : "↑"}`);
+
+    const resultTitle = computed(() => actionLabelMap[state.selectedAction]);
+    const selectedCountryLabel = computed(() => {
+      if (!state.selectedCountry) {
+        return "全部国家";
+      }
+      return countryNameMap[state.selectedCountry] || state.selectedCountry;
+    });
+
+    const resultCountText = computed(() => {
+      if (state.selectedAction === "retention") {
+        return `${retentionRows.value.length} 条`;
+      }
+      if (state.selectedAction === "vipCount") {
+        return "实时汇总";
+      }
+      if (state.selectedAction === "userIds") {
+        return `${filteredUserList.value.length} 位用户`;
+      }
+      return "抽屉详情";
+    });
+
+    initCountries();
+
+    return {
+      actionLabelMap,
+      actions,
+      apps,
+      closeDrawer,
+      countryOptions,
+      drawerSortButtonLabel,
+      errorMessage,
+      fetchUser,
+      filteredDrawerTimeline,
+      filteredUserList,
+      formatBodyContent,
+      handleFetch,
+      loading,
+      openUserIdDrawer,
+      platforms,
+      retentionRows,
+      resultCountText,
+      resultTitle,
+      safeText,
+      selectedCountryLabel,
+      setAction,
+      changeApp,
+      changePlatform,
+      state,
+      statCards,
+      toggleDrawerSort,
+      toggleUserSort,
+      userSortButtonLabel,
+      vipCountDisplay,
+      vipText,
+      vipTone
+    };
+  }
+}).mount("#app");
+
+</script>
 </body>
 </html>
