@@ -1,257 +1,375 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>数据分析后台</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-
-  <style>
-    body {
-      background:#f0f2f5;
-      font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
-    }
-
-    /* Ant Design Tabs */
-    .ant-tabs {
-      display:flex;
-      gap:24px;
-      border-bottom:1px solid #e5e7eb;
-      margin-bottom:12px;
-    }
-    .ant-tab {
-      padding:12px 0;
-      cursor:pointer;
-      font-size:15px;
-      color:#555;
-      border-bottom:2px solid transparent;
-      transition:.2s;
-    }
-    .ant-tab.active {
-      color:#1677ff;
-      font-weight:600;
-      border-color:#1677ff;
-    }
-
-    /* Ant-like selector buttons */
-    .ant-selector {
-      padding:6px 14px;
-      border:1px solid #d9d9d9;
-      border-radius:6px;
-      background:white;
-      cursor:pointer;
-      transition:0.2s;
-      font-size:14px;
-    }
-    .ant-selector.active {
-      background:#1677ff;
-      color:white;
-      border-color:#1677ff;
-      box-shadow:0 2px 6px rgba(22,119,255,.3);
-    }
-
-    /* Ant Button primary */
-    .ant-btn {
-      padding:6px 18px;
-      border-radius:6px;
-      font-size:14px;
-      cursor:pointer;
-      transition:.2s;
-      border:1px solid transparent;
-    }
-    .ant-btn-primary {
-      background:#1677ff;
-      color:white;
-      border-color:#1677ff;
-    }
-    .ant-btn-primary:hover {
-      background:#1463d5;
-    }
-
-    /* Input */
-    .ant-input {
-      border:1px solid #d9d9d9;
-      padding:6px 10px;
-      border-radius:6px;
-      background:white;
-      font-size:14px;
-    }
-
-    /* Ant Card */
-    .ant-card {
-      background:white;
-      border-radius:8px;
-      padding:16px;
-      box-shadow:0 1px 3px rgba(0,0,0,.04);
-      border:1px solid #f0f0f0;
-    }
-
-    /* Ant Table */
-    .ant-table {
-      width:100%;
-      border-collapse:collapse;
-      border:1px solid #f0f0f0;
-    }
-    .ant-table th {
-      background:#fafafa;
-      padding:10px;
-      border-bottom:1px solid #f0f0f0;
-      font-weight:500;
-      font-size:14px;
-      text-align: center;
-    }
-    .ant-table td {
-      padding:10px;
-      border-bottom:1px solid #f5f5f5;
-      font-size:14px;
-      text-align: center;
-    }
-    .ant-table td:nth-child(1) {
-        text-align: left;
-    }
-    .ant-table tr:hover td {
-      background:#f5faff;
-    }
-
-    /* Drawer */
-    .overlay {position:fixed; inset:0; background:rgba(0,0,0,.35); z-index:40; opacity:0; pointer-events:none; transition:.25s;}
-    .overlay.show {opacity:1; pointer-events:auto;}
-    .drawer {position:fixed; top:0; right:-100%; width:88%; max-width:720px; height:100%; background:#fff; z-index:50; padding:20px;
-      box-shadow:-6px 0 18px rgba(0,0,0,.15); transition:.3s;  overflow-y: auto;-webkit-overflow-scrolling: touch;}
-    .drawer.open {right:0;}
-    .drawer-close {position:absolute; top:14px; right:18px; font-size:20px; cursor:pointer;}
-
-    .stat-card {
-        background: white;
-        border-radius: 8px;
-        padding: 16px;
-        box-shadow: 0 1px 3px rgba(0,0,0,.04);
-        border: 1px solid #f0f0f0;
-        cursor: pointer;
-        transition: transform 0.1s;
-    }
-    .stat-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 6px rgba(0,0,0,.06);
-    }
-    .stat-value {
-      font-size: 24px;
-      font-weight: 700;
-      color: #1677ff;
-    }
-    .stat-label {
-      font-size: 14px;
-      color: #666;
-    }
-  </style>
+  <meta name="color-scheme" content="dark">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
 </head>
+<body>
+  <div id="app" v-cloak>
+    <div class="shell">
+      <header class="topbar">
+        <div>
+          <p class="topbar-label">Today</p>
+          <h1>数据分析后台</h1>
+        </div>
+        <div class="topbar-meta">
+          <span>{{ state.selectedApp.name }}</span>
+          <span>{{ actionLabelMap[state.selectedAction] }}</span>
+        </div>
+      </header>
 
-<body class="p-5">
+      <section class="hero-grid">
+        <article class="hero-card hero-card-primary">
+          <div class="hero-art">
+            <p class="eyebrow">Analytics</p>
+            <h2>{{ state.selectedApp.name }}</h2>
+          </div>
+          <div class="hero-feature-list">
+            <div class="hero-feature">
+              <span>产品</span>
+              <strong>{{ state.selectedApp.name }}</strong>
+            </div>
+            <div class="hero-feature">
+              <span>模式</span>
+              <strong>{{ actionLabelMap[state.selectedAction] }}</strong>
+            </div>
+          </div>
+        </article>
 
-<h1 class="text-2xl font-bold mb-4">数据分析后台</h1>
+        <article class="hero-card hero-card-side">
+          <p class="section-kicker">Overview</p>
+          <h3>{{ resultTitle }}</h3>
+          <p class="hero-side-number">{{ resultCountText }}</p>
+        </article>
+      </section>
 
-<div class="ant-card mb-4">
-  <div id="productTabs" class="ant-tabs">
-    <div class="ant-tab active" data-app="vpnproxy" data-name="VPN Proxy">VPN Proxy</div>
-    <div class="ant-tab" data-app="lumotalk" data-name="LumoTalk">LumoTalk</div>
-    <div class="ant-tab" data-app="manbo" data-name="Manbo">Manbo</div>
-  </div>
-</div>
+      <main class="layout">
+        <section class="panel section">
+          <div class="section-head">
+            <div>
+              <p class="section-kicker">产品视图</p>
+              <h2>应用切换</h2>
+            </div>
+          </div>
+          <div class="segmented-grid">
+            <button
+              v-for="app in apps"
+              :key="app.table"
+              class="segmented-button"
+              :class="{ active: state.selectedApp.table === app.table }"
+              @click="changeApp(app)"
+            >
+              <span>{{ app.name }}</span>
+              <small>{{ app.table }}</small>
+            </button>
+          </div>
+        </section>
 
-<div class="ant-card mb-4">
-  <div class="flex flex-wrap gap-5 items-end mb-4">
-    <div>
-      <p class="text-gray-600 text-sm mb-1">管理员 ID</p>
-      <input id="adminId" class="ant-input w-40" placeholder="Admin ID" value="">
+        <section class="panel section">
+          <div class="section-head">
+            <div>
+              <p class="section-kicker">查询条件</p>
+              <h2>筛选与维度</h2>
+            </div>
+            <button class="primary-button" :disabled="loading" @click="handleFetch">
+              <span v-if="loading">查询中...</span>
+              <span v-else>执行查询</span>
+            </button>
+          </div>
+
+          <div class="form-grid">
+            <label class="field">
+              <span>管理员 ID</span>
+              <input v-model.trim="state.adminId" type="text" placeholder="请输入 Admin ID">
+            </label>
+
+            <label class="field">
+              <span>开始日期</span>
+              <input v-model="state.startDate" type="date">
+            </label>
+
+            <label class="field">
+              <span>结束日期</span>
+              <input v-model="state.endDate" type="date">
+            </label>
+
+            <label v-if="state.selectedAction === 'userData'" class="field">
+              <span>用户 ID</span>
+              <input v-model.trim="state.userIdInput" type="text" placeholder="请输入用户 ID">
+            </label>
+          </div>
+
+          <div class="filter-block">
+            <div class="filter-label">平台</div>
+            <div class="chip-row">
+              <button
+                v-for="platform in platforms"
+                :key="platform.value"
+                class="chip"
+                :class="{ active: state.selectedPlatform === platform.value }"
+                @click="changePlatform(platform.value)"
+              >
+                {{ platform.label }}
+              </button>
+            </div>
+          </div>
+
+          <div class="filter-block">
+            <div class="filter-label">国家</div>
+            <div class="chip-row">
+              <button
+                v-for="country in countryOptions"
+                :key="country.value"
+                class="chip"
+                :class="{ active: state.selectedCountry === country.value }"
+                @click="state.selectedCountry = country.value"
+              >
+                {{ country.label }}
+              </button>
+            </div>
+          </div>
+
+          <div class="filter-block">
+            <div class="filter-label">类型</div>
+            <div class="chip-row">
+              <button
+                v-for="action in actions"
+                :key="action.value"
+                class="chip"
+                :class="{ active: state.selectedAction === action.value }"
+                @click="setAction(action.value)"
+              >
+                {{ action.label }}
+              </button>
+            </div>
+          </div>
+
+          <p v-if="errorMessage" class="feedback error">{{ errorMessage }}</p>
+        </section>
+
+        <section v-if="state.selectedAction === 'userIds'" class="stats-grid">
+          <button
+            v-for="card in statCards"
+            :key="card.key"
+            class="panel stat-card"
+            :class="card.tone"
+            @click="openUserIdDrawer(card)"
+          >
+            <div class="stat-top">
+              <span>{{ card.label }}</span>
+              <small>{{ card.hint }}</small>
+            </div>
+            <strong>{{ card.value }}</strong>
+            <p>{{ card.rateLabel }} {{ card.rate }}</p>
+          </button>
+        </section>
+
+        <section v-if="state.selectedAction === 'userIds'" class="panel section">
+          <div class="section-head compact">
+            <div>
+              <p class="section-kicker">用户检索</p>
+              <h2>用户列表</h2>
+            </div>
+            <button class="ghost-button" @click="toggleUserSort">
+              {{ userSortButtonLabel }}
+            </button>
+          </div>
+          <div class="toolbar">
+            <label class="field grow">
+              <span>搜索</span>
+              <input v-model.trim="state.userListSearch" type="text" placeholder="搜索用户 ID、国家或设备">
+            </label>
+          </div>
+        </section>
+
+        <section class="panel section result-panel">
+          <div class="section-head compact">
+            <div>
+              <p class="section-kicker">结果面板</p>
+              <h2>{{ resultTitle }}</h2>
+            </div>
+            <span class="result-count">{{ resultCountText }}</span>
+          </div>
+
+          <div v-if="loading" class="empty-state">
+            <div class="spinner"></div>
+            <p>正在加载数据</p>
+          </div>
+
+          <template v-else>
+            <div v-if="state.selectedAction === 'vipCount'" class="vip-summary">
+              <strong>{{ vipCountDisplay }}</strong>
+              <span>VIP 人数</span>
+            </div>
+
+            <div v-else-if="state.selectedAction === 'retention'" class="table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>日期</th>
+                    <th>新增</th>
+                    <th>Day1 留存</th>
+                    <th>留存率</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="item in retentionRows" :key="item.date">
+                    <td>{{ item.date }}</td>
+                    <td>{{ item.newUserCount }}</td>
+                    <td>{{ item.day1Retention }}</td>
+                    <td>{{ item.day1Rate }}</td>
+                  </tr>
+                  <tr v-if="!retentionRows.length">
+                    <td colspan="4" class="table-empty">暂无留存数据</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div v-else-if="state.selectedAction === 'userIds'" class="results-stack">
+              <div v-if="!filteredUserList.length" class="empty-state">
+                <p>暂无用户数据</p>
+              </div>
+              <div v-else class="table-wrap desktop-only">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>User ID</th>
+                      <th>国家</th>
+                      <th>设备</th>
+                      <th>VIP</th>
+                      <th>最后记录时间</th>
+                      <th>操作</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="item in filteredUserList" :key="item.user_id">
+                      <td>{{ safeText(item.user_id, 'N/A') }}</td>
+                      <td>{{ safeText(item.country_code, 'N/A') }}</td>
+                      <td>{{ safeText(item.device, 'N/A') }}</td>
+                      <td>
+                        <span class="pill" :class="vipTone(item.vip_status)">
+                          {{ vipText(item.vip_status) }}
+                        </span>
+                      </td>
+                      <td>{{ safeText(item.log_time, 'N/A') }}</td>
+                      <td>
+                        <button class="ghost-button compact-button" @click="fetchUser(item.user_id)">打开</button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="mobile-cards mobile-only">
+                <article v-for="item in filteredUserList" :key="`${item.user_id}-${item.log_time}`" class="mobile-card">
+                  <div class="mobile-card-row">
+                    <strong>{{ safeText(item.user_id, 'N/A') }}</strong>
+                    <span class="pill" :class="vipTone(item.vip_status)">{{ vipText(item.vip_status) }}</span>
+                  </div>
+                  <p>{{ safeText(item.country_code, 'N/A') }} · {{ safeText(item.device, 'N/A') }}</p>
+                  <small>{{ safeText(item.log_time, 'N/A') }}</small>
+                  <button class="ghost-button compact-button" @click="fetchUser(item.user_id)">查看详情</button>
+                </article>
+              </div>
+            </div>
+
+            <div v-else class="empty-state">
+              <p>结果已在右侧抽屉中打开</p>
+            </div>
+          </template>
+        </section>
+
+        <section class="editorial-strip">
+          <article class="editorial-card">
+            <p class="section-kicker">Product</p>
+            <h3>{{ state.selectedApp.name }}</h3>
+          </article>
+          <article class="editorial-card">
+            <p class="section-kicker">Platform</p>
+            <h3>{{ state.selectedPlatform || '全部平台' }}</h3>
+          </article>
+          <article class="editorial-card">
+            <p class="section-kicker">Country</p>
+            <h3>{{ selectedCountryLabel }}</h3>
+          </article>
+        </section>
+      </main>
     </div>
 
-    <div>
-      <p class="text-gray-600 text-sm mb-1">平台筛选</p>
-      <div id="platformSelector" class="flex gap-2">
-        <div class="ant-selector active" data-platform="">全部</div>
-        <div class="ant-selector" data-platform="android">Android</div>
-        <div class="ant-selector" data-platform="ios">iOS</div>
+    <div class="drawer-mask" :class="{ open: state.drawerOpen }" @click="closeDrawer"></div>
+    <aside class="drawer" :class="{ open: state.drawerOpen }" aria-label="详情抽屉">
+      <div class="drawer-header">
+        <div>
+          <p class="section-kicker">DETAILS</p>
+          <h2>{{ state.drawerTitle }}</h2>
+        </div>
+        <button class="icon-button" @click="closeDrawer">×</button>
       </div>
-    </div>
 
-    <div>
-      <p class="text-gray-600 text-sm mb-1">开始日期</p>
-      <input id="startDate" type="date" class="ant-input w-40">
-    </div>
+      <div v-if="state.drawerMode === 'timeline'" class="toolbar drawer-toolbar">
+        <label class="field grow">
+          <span>搜索事件</span>
+          <input v-model.trim="state.drawerSearch" type="text" placeholder="搜索事件名称、IP、设备或内容">
+        </label>
+        <button class="ghost-button" @click="toggleDrawerSort">{{ drawerSortButtonLabel }}</button>
+      </div>
 
-    <div>
-      <p class="text-gray-600 text-sm mb-1">结束日期</p>
-      <input id="endDate" type="date" class="ant-input w-40">
-    </div>
+      <div class="drawer-body">
+        <div v-if="state.drawerMode === 'timeline'" class="event-list">
+          <article v-for="item in filteredDrawerTimeline" :key="`${item.log_time}-${item.name}-${item.ip}`" class="event-card">
+            <div class="event-head">
+              <strong>{{ safeText(item.name, 'N/A') }}</strong>
+              <span>{{ safeText(item.log_time, 'N/A') }}</span>
+            </div>
+            <div class="event-grid">
+              <p><span>IP</span>{{ safeText(item.ip, 'N/A') }}</p>
+              <p><span>设备</span>{{ safeText(item.device, 'N/A') }}</p>
+              <p><span>地区</span>{{ safeText(item.area, 'N/A') }}</p>
+              <p><span>VPN</span>{{ item.vpn_status === 1 ? '开启' : '关闭' }}</p>
+            </div>
+            <div v-if="formatBodyContent(item.body).length" class="event-body">
+              <span>Body</span>
+              <ul>
+                <li v-for="entry in formatBodyContent(item.body)" :key="entry">{{ entry }}</li>
+              </ul>
+            </div>
+          </article>
+          <div v-if="!filteredDrawerTimeline.length" class="empty-state">
+            <p>暂无匹配的事件</p>
+          </div>
+        </div>
 
-    <button id="fetchBtn" class="ant-btn ant-btn-primary ml-auto">查询</button>
+        <div v-else class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>User ID</th>
+                <th>国家</th>
+                <th>最后时间</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="item in state.drawerList" :key="`${item.user_id}-${item.log_time}`">
+                <td>{{ safeText(item.user_id, 'N/A') }}</td>
+                <td>{{ safeText(item.country_code, 'N/A') }}</td>
+                <td>{{ safeText(item.log_time, 'N/A') }}</td>
+              </tr>
+              <tr v-if="!state.drawerList.length">
+                <td colspan="3" class="table-empty">暂无可展示数据</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </aside>
   </div>
 
-  <div class="flex items-center gap-3 mb-4">
-    <span class="w-16 text-gray-600 text-sm">国家：</span>
-    <div id="countrySelector" class="flex gap-2 flex-wrap">
-      <div class="ant-selector active" data-value="">加载中...</div>
-    </div>
-  </div>
-
-  <div class="flex items-center gap-3">
-    <span class="w-16 text-gray-600 text-sm">类型：</span>
-    <div id="actionSelector" class="flex gap-2 flex-wrap">
-      <div class="ant-selector" data-action="retention">留存率</div>
-      <div class="ant-selector active" data-action="userIds">用户列表</div>
-      <div class="ant-selector" data-action="userData">单用户数据</div>
-      <div class="ant-selector" data-action="vipCount">VIP人数</div>
-    </div>
-    <div id="userIdInputWrapper" class="hidden ml-4">
-      <input id="userIdInput" class="ant-input w-40" placeholder="用户ID">
-    </div>
-  </div>
-</div>
-
-<div id="statsContainer" class="mb-4 hidden">
-  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-    <div id="statNewUsers" class="stat-card" data-action="install" data-label="新用户列表">
-      <div class="stat-value text-blue-500" id="statNewUsersValue">0</div>
-      <div class="stat-label">新用户数</div>
-      <div class="text-xs text-gray-500 mt-1">购买率: <span id="rateBuy">0.00%</span></div>
-    </div>
-    <div id="statPurchases" class="stat-card" data-action="buy" data-label="购买用户列表">
-      <div class="stat-value text-green-500" id="statPurchasesValue">0</div>
-      <div class="stat-label">购买人数</div>
-    </div>
-    <div id="statCancellations" class="stat-card" data-action="cancel" data-label="取消用户列表">
-      <div class="stat-value text-orange-500" id="statCancellationsValue">0</div>
-      <div class="stat-label">订单取消人数</div>
-      <div class="text-xs text-gray-500 mt-1">取消率: <span id="rateCancel">0.00%</span></div>
-    </div>
-    <div id="statRefunds" class="stat-card" data-action="refund" data-label="退款用户列表">
-      <div class="stat-value text-red-500" id="statRefundsValue">0</div>
-      <div class="stat-label">退款人数</div>
-      <div class="text-xs text-gray-500 mt-1">退款率: <span id="rateRefund">0.00%</span></div>
-    </div>
-  </div>
-</div>
-
-<div id="userListControls" class="ant-card mb-4 hidden">
-  <div class="flex gap-3 items-center">
-    <input id="userListSearch" class="ant-input flex-1" placeholder="搜索用户ID、国家或设备">
-    <button id="userListSortBtn" class="ant-btn" data-sort-field="log_time" data-sort-order="desc">按时间 ↓</button>
-  </div>
-</div>
-
-<div id="userDataContainer" class="ant-card"></div>
-<div id="overlay" class="overlay"></div>
-<div id="userDrawer" class="drawer">
-  <span id="drawerClose" class="drawer-close">&times;</span>
-  <h2 class="text-lg font-semibold mb-3" id="drawerTitle">用户详情</h2>
-  <div id="drawerControls" class="flex gap-3 mb-3">
-    <input id="drawerSearch" class="ant-input flex-1" placeholder="搜索事件名称、IP、设备或Body内容">
-    <button id="drawerSortBtn" class="ant-btn">按时间 ↓</button>
-  </div>
-  <div id="drawerContent"></div>
-</div>
-
-<script src="./app.js"></script>
-
+  <script type="module" src="./app.js"></script>
 </body>
 </html>
