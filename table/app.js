@@ -23,7 +23,8 @@ const countryNameMap = {
 const apps = [
   { name: "VPN Proxy", table: "vpnproxy" },
   { name: "LumoTalk", table: "lumotalk" },
-  { name: "Manbo", table: "manbo" }
+  { name: "Manbo", table: "manbo" },
+  { name: "我的刀盾", table: "funVoice" }
 ];
 
 const platforms = [
