@@ -20,6 +20,19 @@ const countryNameMap = {
   AM: "亚美尼亚", AZ: "阿塞拜疆", GE: "格鲁吉亚", MD: "摩尔多瓦"
 };
 
+const platformLabelMap = {
+  "": "全部平台",
+  android: "Android",
+  ios: "iOS"
+};
+
+const appAccentMap = {
+  vpnproxy: "linear-gradient(135deg, #0d1c3b, #1d6de7)",
+  lumotalk: "linear-gradient(135deg, #6327ff, #ff7a59)",
+  manbo: "linear-gradient(135deg, #16202b, #19a974)",
+  funVoice: "linear-gradient(135deg, #1a1326, #ff8b3d)"
+};
+
 const apps = [
   { name: "VPN Proxy", table: "vpnproxy" },
   { name: "LumoTalk", table: "lumotalk" },
@@ -34,8 +47,8 @@ const platforms = [
 ];
 
 const actions = [
-  { label: "留存率", value: "retention" },
   { label: "用户列表", value: "userIds" },
+  { label: "留存率", value: "retention" },
   { label: "单用户数据", value: "userData" },
   { label: "VIP 人数", value: "vipCount" }
 ];
@@ -157,25 +170,55 @@ createApp({
         );
 
         state.countries = response?.success && Array.isArray(response.data) ? response.data : [];
-        state.selectedCountry = "";
+        if (!state.countries.includes(state.selectedCountry)) {
+          state.selectedCountry = "";
+        }
       } catch (error) {
         state.countries = [];
+        state.selectedCountry = "";
       }
     }
 
-    function setAction(action) {
+    function clearCurrentResult() {
+      state.currentAllUserList = [];
+      state.retentionData = [];
+      state.vipCountData = null;
+      state.userStats = { install: [], buy: [], cancel: [], refund: [], userIds: [] };
+    }
+
+    async function runFetchIfReady() {
+      if (!state.adminId || !state.startDate || !state.endDate) {
+        return;
+      }
+
+      if (state.selectedAction === "userData" && !state.userIdInput) {
+        return;
+      }
+
+      await handleFetch();
+    }
+
+    async function setAction(action) {
       state.selectedAction = action;
       errorMessage.value = "";
+      clearCurrentResult();
+      await runFetchIfReady();
     }
 
     async function changeApp(app) {
       state.selectedApp = app;
+      errorMessage.value = "";
+      clearCurrentResult();
       await initCountries();
+      await runFetchIfReady();
     }
 
     async function changePlatform(platformValue) {
       state.selectedPlatform = platformValue;
+      errorMessage.value = "";
+      clearCurrentResult();
       await initCountries();
+      await runFetchIfReady();
     }
 
     function vipText(status) {
@@ -277,7 +320,7 @@ createApp({
             userId
           })
         );
-        openTimelineDrawer(Array.isArray(data) ? data : []);
+        openTimelineDrawer(Array.isArray(data) ? data : [], `${userId} · 用户时间线`);
       } catch (error) {
         errorMessage.value = `详情失败: ${error.message}`;
       }
@@ -330,7 +373,7 @@ createApp({
           } else if (state.selectedAction === "vipCount") {
             state.vipCountData = data;
           } else if (state.selectedAction === "userData") {
-            openTimelineDrawer(Array.isArray(data) ? data : []);
+            openTimelineDrawer(Array.isArray(data) ? data : [], `${state.userIdInput} · 用户时间线`);
           }
         }
       } catch (error) {
@@ -364,8 +407,21 @@ createApp({
       openListDrawer(card.items, card.drawerTitle);
     }
 
+    function appInitials(name) {
+      return safeText(name)
+        .split(/[\s-]+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((item) => item.charAt(0).toUpperCase())
+        .join("");
+    }
+
+    function appAccentStyle(table) {
+      return { background: appAccentMap[table] || "linear-gradient(135deg, #31343f, #777d90)" };
+    }
+
     const countryOptions = computed(() => [
-      { label: "全部", value: "" },
+      { label: "全部地区", value: "" },
       ...state.countries.map((code) => ({
         label: countryNameMap[code] || code,
         value: code
@@ -437,7 +493,6 @@ createApp({
           value: `${installCount}/${userCount}`,
           rateLabel: "购买率",
           rate: buyRate,
-          hint: "点击查看新用户",
           tone: "tone-blue",
           items: state.userStats.install,
           drawerTitle: "新用户列表"
@@ -448,7 +503,6 @@ createApp({
           value: String(buyCount),
           rateLabel: "转化率",
           rate: buyRate,
-          hint: "点击查看购买用户",
           tone: "tone-green",
           items: state.userStats.buy,
           drawerTitle: "购买用户列表"
@@ -459,7 +513,6 @@ createApp({
           value: String(cancelCount),
           rateLabel: "取消率",
           rate: cancelRate,
-          hint: "点击查看取消用户",
           tone: "tone-amber",
           items: state.userStats.cancel,
           drawerTitle: "取消用户列表"
@@ -470,7 +523,6 @@ createApp({
           value: String(refundCount),
           rateLabel: "退款率",
           rate: refundRate,
-          hint: "点击查看退款用户",
           tone: "tone-red",
           items: state.userStats.refund,
           drawerTitle: "退款用户列表"
@@ -500,20 +552,22 @@ createApp({
     });
 
     const userSortButtonLabel = computed(() => {
-      const label = state.userSortField === "log_time" ? "时间" : "VIP";
+      const label = state.userSortField === "log_time" ? "按时间" : "按 VIP";
       const icon = state.userSortOrder === "desc" ? "↓" : "↑";
-      return `按${label} ${icon}`;
+      return `${label} ${icon}`;
     });
 
     const drawerSortButtonLabel = computed(() => `按时间 ${state.drawerSortOrder === "desc" ? "↓" : "↑"}`);
-
     const resultTitle = computed(() => actionLabelMap[state.selectedAction]);
+
     const selectedCountryLabel = computed(() => {
       if (!state.selectedCountry) {
-        return "全部国家";
+        return "全部地区";
       }
       return countryNameMap[state.selectedCountry] || state.selectedCountry;
     });
+
+    const selectedPlatformLabel = computed(() => platformLabelMap[state.selectedPlatform] || state.selectedPlatform || "全部平台");
 
     const resultCountText = computed(() => {
       if (state.selectedAction === "retention") {
@@ -525,7 +579,31 @@ createApp({
       if (state.selectedAction === "userIds") {
         return `${filteredUserList.value.length} 位用户`;
       }
-      return "抽屉详情";
+      return "抽屉时间线";
+    });
+
+    const appActionSummary = computed(() => (app) => {
+      if (app.table !== state.selectedApp.table) {
+        return `点击查看 ${actionLabelMap[state.selectedAction]}`;
+      }
+
+      if (loading.value) {
+        return `正在加载 ${actionLabelMap[state.selectedAction]}`;
+      }
+
+      if (state.selectedAction === "userIds") {
+        return `当前共 ${filteredUserList.value.length} 位用户`;
+      }
+
+      if (state.selectedAction === "retention") {
+        return `当前共 ${retentionRows.value.length} 条留存记录`;
+      }
+
+      if (state.selectedAction === "vipCount") {
+        return `当前 VIP 人数 ${vipCountDisplay.value}`;
+      }
+
+      return "点击后在右侧抽屉查看用户时间线";
     });
 
     initCountries();
@@ -533,7 +611,12 @@ createApp({
     return {
       actionLabelMap,
       actions,
+      appAccentStyle,
+      appActionSummary,
+      appInitials,
       apps,
+      changeApp,
+      changePlatform,
       closeDrawer,
       countryOptions,
       drawerSortButtonLabel,
@@ -551,11 +634,10 @@ createApp({
       resultTitle,
       safeText,
       selectedCountryLabel,
+      selectedPlatformLabel,
       setAction,
-      changeApp,
-      changePlatform,
-      state,
       statCards,
+      state,
       toggleDrawerSort,
       toggleUserSort,
       userSortButtonLabel,
