@@ -17,293 +17,603 @@
         <div class="brand-lockup">
           <div class="brand-mark">A</div>
           <div class="brand-copy">
-            <p>Analytics Console</p>
-            <strong>Data Apps Connect</strong>
+            <p>Refactored Worker</p>
+            <strong>Analytics Console</strong>
           </div>
         </div>
 
         <nav class="top-nav" aria-label="功能切换">
           <button
-            v-for="action in actions"
-            :key="action.value"
+            v-for="view in viewDefs"
+            :key="view.value"
             class="top-nav-link"
-            :class="{ active: state.selectedAction === action.value }"
-            @click="setAction(action.value)"
+            :class="{ active: state.activeView === view.value }"
+            @click="state.activeView = view.value"
           >
-            {{ action.label }}
+            {{ view.label }}
           </button>
         </nav>
 
         <div class="header-identity">
-          <span>{{ selectedCountryLabel }}</span>
-          <strong>{{ state.selectedApp.name }}</strong>
+          <span>Refactored Worker</span>
+          <strong>{{ selectedAppName }}</strong>
         </div>
       </header>
 
       <main class="workspace">
+        <section class="hero-panel">
+          <div class="hero-copy">
+            <p class="section-note">Console</p>
+            <h1>{{ activeViewLabel }}</h1>
+            <p class="hero-text">
+              前端已切换到新的统一查询协议，筛选条件、聚合字段和事件选项都由后端元数据驱动。
+            </p>
+          </div>
+
+          <div class="hero-controls">
+            <label class="toolbar-field admin-field">
+              <span>管理员 ID</span>
+              <input v-model.trim="state.adminId" type="text" placeholder="请输入管理员 ID">
+            </label>
+            <div class="hero-button-row">
+              <button class="secondary-button" :disabled="loading.metadata" @click="loadMetadata">
+                {{ loading.metadata ? '刷新中...' : '刷新元数据' }}
+              </button>
+              <button class="query-button" :disabled="loading.query" @click="runActiveQuery">
+                {{ loading.query ? '查询中...' : '执行查询' }}
+              </button>
+            </div>
+          </div>
+        </section>
+
         <section class="apps-stage">
           <div class="apps-stage-head">
             <div class="apps-title-block">
-              <p class="section-note">{{ actionLabelMap[state.selectedAction] }}</p>
-              <h1>Apps</h1>
+              <p class="section-note">Apps</p>
+              <h2>选择业务线</h2>
             </div>
 
-            <div class="apps-stage-controls">
-              <div class="inline-filter-row">
-                <label class="toolbar-field short">
-                  <span>开始</span>
-                  <input v-model="state.startDate" type="date">
-                </label>
-                <label class="toolbar-field short">
-                  <span>结束</span>
-                  <input v-model="state.endDate" type="date">
-                </label>
-                <label class="toolbar-field compact">
-                  <span>平台</span>
-                  <select v-model="state.selectedPlatform" @change="changePlatform(state.selectedPlatform)">
-                    <option v-for="platform in platforms" :key="platform.value" :value="platform.value">
-                      {{ platform.label }}
-                    </option>
-                  </select>
-                </label>
-                <label class="toolbar-field compact">
-                  <span>地区</span>
-                  <select v-model="state.selectedCountry">
-                    <option v-for="country in countryOptions" :key="country.value" :value="country.value">
-                      {{ country.label }}
-                    </option>
-                  </select>
-                </label>
-              </div>
-
-              <div class="inline-admin-row">
-                <label class="toolbar-field admin-field">
-                  <span>管理员 ID</span>
-                  <input v-model.trim="state.adminId" type="text" placeholder="输入管理员 ID">
-                </label>
-                <button class="query-button" :disabled="loading" @click="handleFetch">
-                  <span v-if="loading">查询中...</span>
-                  <span v-else>查询</span>
-                </button>
+            <div class="inline-filter-row">
+              <label class="toolbar-field short">
+                <span>开始日期</span>
+                <input v-model="state.startDate" type="date">
+              </label>
+              <label class="toolbar-field short">
+                <span>结束日期</span>
+                <input v-model="state.endDate" type="date">
+              </label>
+              <div class="status-badge">
+                <span>已选条件</span>
+                <strong>{{ activeFilterCount }}</strong>
               </div>
             </div>
           </div>
 
           <div class="apps-grid" aria-label="App 列表">
             <button
-              v-for="app in apps"
-              :key="app.table"
+              v-for="app in state.apps"
+              :key="app.id"
               class="app-tile"
-              :class="{ active: state.selectedApp.table === app.table }"
-              @click="changeApp(app)"
+              :class="{ active: state.selectedApp === app.id }"
+              @click="changeApp(app.id)"
             >
-              <div class="app-avatar" :style="appAccentStyle(app.table)">
-                <span>{{ appInitials(app.name) }}</span>
+              <div class="app-avatar" :style="appAccentStyle(app.id)">
+                <span>{{ app.name.slice(0, 2).toUpperCase() }}</span>
               </div>
               <div class="app-tile-copy">
                 <strong>{{ app.name }}</strong>
+                <small>{{ app.id }}</small>
               </div>
             </button>
           </div>
         </section>
 
-        <section class="content-stage">
-          <div class="content-stage-head">
-            <div>
-              <p class="section-note">Content</p>
-              <h2>{{ state.selectedApp.name }} · {{ resultTitle }}</h2>
+        <section class="console-grid">
+          <aside class="filter-panel">
+            <div class="panel-head">
+              <div>
+                <p class="section-note">Filters</p>
+                <h3>筛选条件</h3>
+              </div>
+              <button class="ghost-button" @click="clearAllFilters">清空</button>
             </div>
-            <div class="content-head-side">
-              <span>{{ resultCountText }}</span>
-              <small>{{ selectedCountryLabel }} / {{ selectedPlatformLabel }}</small>
+
+            <div class="filter-stack">
+              <div class="filter-block">
+                <div class="filter-label-row">
+                  <strong>平台</strong>
+                  <small>{{ state.filters.platform.length }} 项</small>
+                </div>
+                <div class="chip-list">
+                  <button
+                    v-for="item in platformOptions"
+                    :key="item.value"
+                    class="chip-button"
+                    :class="{ active: state.filters.platform.includes(item.value) }"
+                    @click="toggleValue('platform', item.value)"
+                  >
+                    {{ item.label }}
+                  </button>
+                </div>
+              </div>
+
+              <div class="filter-block">
+                <div class="filter-label-row">
+                  <strong>国家</strong>
+                  <small>{{ state.filters.country_code.length }} 项</small>
+                </div>
+                <div class="chip-list scroll-list">
+                  <button
+                    v-for="item in countryOptions"
+                    :key="item.value"
+                    class="chip-button"
+                    :class="{ active: state.filters.country_code.includes(item.value) }"
+                    @click="toggleValue('country_code', item.value)"
+                  >
+                    {{ item.label }}
+                  </button>
+                </div>
+              </div>
+
+              <div class="filter-block">
+                <div class="filter-label-row">
+                  <strong>事件</strong>
+                  <small>{{ state.eventsPanel.selectedEvents.length }} 项</small>
+                </div>
+                <label class="toolbar-field">
+                  <span>输入事件名模糊匹配</span>
+                  <input
+                    v-model.trim="state.eventsPanel.eventKeyword"
+                    type="text"
+                    placeholder="例如 install / refund / session"
+                  >
+                </label>
+                <div v-if="state.eventsPanel.selectedEvents.length" class="chip-list">
+                  <button
+                    v-for="eventName in state.eventsPanel.selectedEvents"
+                    :key="eventName"
+                    class="chip-button active"
+                    @click="toggleEvent(eventName)"
+                  >
+                    {{ eventName }}
+                  </button>
+                </div>
+                <div class="chip-list suggestion-list">
+                  <button
+                    v-for="eventName in filteredEventSuggestions"
+                    :key="eventName"
+                    class="chip-button"
+                    @click="toggleEvent(eventName)"
+                  >
+                    {{ eventName }}
+                  </button>
+                </div>
+                <p v-if="!filteredEventSuggestions.length" class="hint-text">
+                  没有更多匹配事件了，换个关键词试试。
+                </p>
+                <div v-if="state.activeView === 'metadata'" class="meta-inline-note">
+                  元数据页仍然会展示完整事件池，方便你对照。
+                </div>
+              </div>
+
+              <div class="filter-block">
+                <div class="filter-label-row">
+                  <strong>VIP 状态</strong>
+                </div>
+                <div class="chip-list">
+                  <button class="chip-button" :class="{ active: state.filters.vip_status.includes(1) }" @click="toggleValue('vip_status', 1)">会员</button>
+                  <button class="chip-button" :class="{ active: state.filters.vip_status.includes(2) }" @click="toggleValue('vip_status', 2)">已过期</button>
+                  <button class="chip-button" :class="{ active: state.filters.vip_status.includes(0) }" @click="toggleValue('vip_status', 0)">普通</button>
+                </div>
+              </div>
+
+              <div class="filter-block">
+                <div class="filter-label-row">
+                  <strong>VPN 状态</strong>
+                </div>
+                <div class="chip-list">
+                  <button class="chip-button" :class="{ active: state.filters.vpn_status.includes(1) }" @click="toggleValue('vpn_status', 1)">开启</button>
+                  <button class="chip-button" :class="{ active: state.filters.vpn_status.includes(0) }" @click="toggleValue('vpn_status', 0)">关闭</button>
+                </div>
+              </div>
+
+              <div class="filter-block">
+                <div class="filter-label-row">
+                  <strong>高级条件</strong>
+                  <small>按字段透传</small>
+                </div>
+                <div class="field-grid">
+                  <label class="toolbar-field">
+                    <span>{{ staticFilterLabels.user_id }}</span>
+                    <input v-model.trim="state.filters.user_id" type="text" placeholder="精确筛用户">
+                  </label>
+                  <label class="toolbar-field">
+                    <span>{{ staticFilterLabels.device }}</span>
+                    <input v-model.trim="state.filters.device" type="text" placeholder="如 iPhone">
+                  </label>
+                  <label class="toolbar-field">
+                    <span>{{ staticFilterLabels.area }}</span>
+                    <input v-model.trim="state.filters.area" type="text" placeholder="地区字段">
+                  </label>
+                  <label class="toolbar-field">
+                    <span>{{ staticFilterLabels.ip }}</span>
+                    <input v-model.trim="state.filters.ip" type="text" placeholder="精确 IP">
+                  </label>
+                  <label class="toolbar-field field-span-2">
+                    <span>{{ staticFilterLabels.body_contains }}</span>
+                    <input v-model.trim="state.filters.body_contains" type="text" placeholder="Body 模糊匹配关键词">
+                  </label>
+                </div>
+              </div>
+
+              <div v-if="state.activeView === 'aggregate'" class="filter-block">
+                <div class="filter-label-row">
+                  <strong>分组字段</strong>
+                  <small>{{ state.aggregate.groupBy.length }} 项</small>
+                </div>
+                <div class="chip-list">
+                  <button
+                    v-for="item in state.metadata.groupBy"
+                    :key="item"
+                    class="chip-button"
+                    :class="{ active: state.aggregate.groupBy.includes(item) }"
+                    @click="toggleAggregateList('groupBy', item)"
+                  >
+                    {{ groupByLabels[item] || item }}
+                  </button>
+                </div>
+              </div>
+
+              <div v-if="state.activeView === 'aggregate'" class="filter-block">
+                <div class="filter-label-row">
+                  <strong>统计指标</strong>
+                  <small>{{ state.aggregate.metrics.length }} 项</small>
+                </div>
+                <div class="chip-list">
+                  <button
+                    v-for="item in state.metadata.metrics"
+                    :key="item"
+                    class="chip-button"
+                    :class="{ active: state.aggregate.metrics.includes(item) }"
+                    @click="toggleAggregateList('metrics', item)"
+                  >
+                    {{ metricLabels[item] || item }}
+                  </button>
+                </div>
+              </div>
+
+              <div v-if="state.activeView === 'retention'" class="filter-block">
+                <div class="filter-label-row">
+                  <strong>留存回访事件</strong>
+                </div>
+                <label class="toolbar-field">
+                  <span>逗号分隔</span>
+                  <input v-model.trim="state.retention.returnEventsInput" type="text" placeholder="server_done, session">
+                </label>
+              </div>
+
+              <div v-if="state.activeView === 'timeline'" class="filter-block">
+                <div class="filter-label-row">
+                  <strong>时间线参数</strong>
+                </div>
+                <div class="field-grid">
+                  <label class="toolbar-field field-span-2">
+                    <span>用户 ID</span>
+                    <input v-model.trim="state.timeline.userId" type="text" placeholder="输入 userId">
+                  </label>
+                  <label class="toolbar-field">
+                    <span>返回条数</span>
+                    <input v-model.number="state.timeline.limit" type="number" min="1" max="2000">
+                  </label>
+                </div>
+              </div>
+
+              <div v-if="state.activeView === 'events'" class="filter-block">
+                <div class="filter-label-row">
+                  <strong>分页与排序</strong>
+                </div>
+                <div class="field-grid">
+                  <label class="toolbar-field">
+                    <span>排序字段</span>
+                    <select v-model="state.eventsPanel.sortBy">
+                      <option value="log_time">log_time</option>
+                      <option value="vip_status">vip_status</option>
+                      <option value="country_code">country_code</option>
+                      <option value="name">name</option>
+                      <option value="platform">platform</option>
+                    </select>
+                  </label>
+                  <label class="toolbar-field">
+                    <span>排序方向</span>
+                    <select v-model="state.eventsPanel.sortOrder">
+                      <option value="DESC">DESC</option>
+                      <option value="ASC">ASC</option>
+                    </select>
+                  </label>
+                  <label class="toolbar-field">
+                    <span>每页条数</span>
+                    <select v-model.number="state.eventsPanel.pageSize">
+                      <option :value="20">20</option>
+                      <option :value="50">50</option>
+                      <option :value="100">100</option>
+                      <option :value="200">200</option>
+                    </select>
+                  </label>
+                </div>
+              </div>
             </div>
-          </div>
+          </aside>
 
-          <div class="content-toolbar">
-            <label v-if="state.selectedAction === 'userData'" class="toolbar-field grow">
-              <span>用户 ID</span>
-              <input v-model.trim="state.userIdInput" type="text" placeholder="输入用户 ID 后查询">
-            </label>
-
-            <label v-if="state.selectedAction === 'userIds'" class="toolbar-field grow">
-              <span>搜索用户</span>
-              <input v-model.trim="state.userListSearch" type="text" placeholder="搜索用户 ID、国家或设备">
-            </label>
-
-            <button v-if="state.selectedAction === 'userIds'" class="secondary-button" @click="toggleUserSort">
-              {{ userSortButtonLabel }}
-            </button>
-          </div>
-
-          <p v-if="errorMessage" class="feedback error">{{ errorMessage }}</p>
-
-          <div v-if="loading" class="loading-panel">
-            <div class="spinner"></div>
-            <p>正在加载 {{ state.selectedApp.name }} 的 {{ resultTitle }}</p>
-          </div>
-
-          <template v-else>
-            <section v-if="state.selectedAction === 'userIds'" class="summary-strip">
-              <button
-                v-for="card in statCards"
-                :key="card.key"
-                class="summary-card"
-                :class="card.tone"
-                @click="openUserIdDrawer(card)"
-              >
-                <span>{{ card.label }}</span>
-                <strong>{{ card.value }}</strong>
-                <small>{{ card.rateLabel }} {{ card.rate }}</small>
-              </button>
-            </section>
-
-            <section class="content-body">
-              <div v-if="state.selectedAction === 'vipCount'" class="metric-hero">
-                <span>VIP 人数</span>
-                <strong>{{ vipCountDisplay }}</strong>
-                <p>当前条件下的实时汇总结果</p>
+          <section class="result-panel">
+            <div class="panel-head">
+              <div>
+                <p class="section-note">Results</p>
+                <h3>{{ selectedAppName }} · {{ activeViewLabel }}</h3>
               </div>
-
-              <div v-else-if="state.selectedAction === 'retention'" class="table-shell">
-                <table class="data-table">
-                  <thead>
-                    <tr>
-                      <th>日期</th>
-                      <th>新增</th>
-                      <th>Day1 留存</th>
-                      <th>留存率</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr v-for="item in retentionRows" :key="item.date">
-                      <td>{{ item.date }}</td>
-                      <td>{{ item.newUserCount }}</td>
-                      <td>{{ item.day1Retention }}</td>
-                      <td>{{ item.day1Rate }}</td>
-                    </tr>
-                    <tr v-if="!retentionRows.length">
-                      <td colspan="4" class="table-empty">暂无留存数据</td>
-                    </tr>
-                  </tbody>
-                </table>
+              <div class="head-meta">
+                <span>{{ state.startDate }} 至 {{ state.endDate }}</span>
+                <strong>{{ state.selectedApp }}</strong>
               </div>
+            </div>
 
-              <div v-else-if="state.selectedAction === 'userIds'" class="table-shell">
-                <table class="data-table">
-                  <thead>
-                    <tr>
-                      <th>User ID</th>
-                      <th>国家</th>
-                      <th>设备</th>
-                      <th>VIP</th>
-                      <th>最后记录时间</th>
-                      <th>操作</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr v-for="item in filteredUserList" :key="`${item.user_id}-${item.log_time}`">
-                      <td>{{ safeText(item.user_id, 'N/A') }}</td>
-                      <td>{{ safeText(item.country_code, 'N/A') }}</td>
-                      <td>{{ safeText(item.device, 'N/A') }}</td>
-                      <td>
-                        <span class="table-pill" :class="vipTone(item.vip_status)">
-                          {{ vipText(item.vip_status) }}
-                        </span>
-                      </td>
-                      <td>{{ safeText(item.log_time, 'N/A') }}</td>
-                      <td>
-                        <button class="secondary-button compact" @click="fetchUser(item.user_id)">打开</button>
-                      </td>
-                    </tr>
-                    <tr v-if="!filteredUserList.length">
-                      <td colspan="6" class="table-empty">暂无用户数据</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
+            <p v-if="errorMessage" class="feedback error">{{ errorMessage }}</p>
 
-              <div v-else class="empty-panel">
-                <strong>点击查询后展示结果</strong>
-                <p>单用户数据会以右侧抽屉时间线形式打开。</p>
-              </div>
-            </section>
-          </template>
+            <div v-if="loading.query" class="loading-panel">
+              <div class="spinner"></div>
+              <p>正在执行 {{ activeViewLabel }}</p>
+            </div>
+
+            <template v-else>
+              <template v-if="state.activeView === 'events'">
+                <section class="summary-strip">
+                  <article v-for="card in eventSummaryCards" :key="card.label" class="summary-card">
+                    <span>{{ card.label }}</span>
+                    <strong>{{ card.value }}</strong>
+                    <small>{{ card.detail }}</small>
+                  </article>
+                </section>
+
+                <div class="result-toolbar">
+                  <span>总计 {{ state.eventsPanel.total }} 条</span>
+                  <div class="pager-row">
+                    <button class="secondary-button compact" @click="changePage(-1)">上一页</button>
+                    <strong>{{ state.eventsPanel.page }} / {{ eventPageCount }}</strong>
+                    <button class="secondary-button compact" @click="changePage(1)">下一页</button>
+                  </div>
+                </div>
+
+                <div class="table-shell">
+                  <table class="data-table">
+                    <thead>
+                      <tr>
+                        <th>User ID</th>
+                        <th>事件</th>
+                        <th>国家</th>
+                        <th>平台</th>
+                        <th>设备</th>
+                        <th>VIP</th>
+                        <th>时间</th>
+                        <th>操作</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="row in state.eventsPanel.rows" :key="`${row.user_id}-${row.log_time}-${row.name}`">
+                        <td>{{ safeText(row.user_id) }}</td>
+                        <td>{{ safeText(row.name) }}</td>
+                        <td>{{ safeText(row.country_code) }}</td>
+                        <td>{{ safeText(row.platform) }}</td>
+                        <td>{{ safeText(row.device) }}</td>
+                        <td>{{ safeText(row.vip_status, '0') }}</td>
+                        <td>{{ safeText(row.log_time) }}</td>
+                        <td>
+                          <button class="secondary-button compact" @click="fetchTimeline(row.user_id, true)">时间线</button>
+                        </td>
+                      </tr>
+                      <tr v-if="!state.eventsPanel.rows.length">
+                        <td colspan="8" class="table-empty">暂无事件记录</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </template>
+
+              <template v-else-if="state.activeView === 'aggregate'">
+                <section v-if="aggregateSummaryCards.length" class="summary-strip">
+                  <article v-for="card in aggregateSummaryCards" :key="card.key" class="summary-card">
+                    <span>{{ card.label }}</span>
+                    <strong>{{ card.value }}</strong>
+                    <small>当前筛选条件汇总</small>
+                  </article>
+                </section>
+
+                <div class="table-shell">
+                  <table class="data-table">
+                    <thead>
+                      <tr>
+                        <th v-for="header in aggregateHeaders" :key="header">
+                          {{ metricLabels[header] || groupByLabels[header] || header }}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="(row, index) in state.aggregateRows" :key="index">
+                        <td v-for="header in aggregateHeaders" :key="header">{{ formatMetricValue(row[header]) }}</td>
+                      </tr>
+                      <tr v-if="!state.aggregateRows.length">
+                        <td :colspan="aggregateHeaders.length || 1" class="table-empty">暂无聚合结果</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </template>
+
+              <template v-else-if="state.activeView === 'retention'">
+                <div class="table-shell">
+                  <table class="data-table">
+                    <thead>
+                      <tr>
+                        <th>窗口开始</th>
+                        <th>新增用户</th>
+                        <th>Day1 留存</th>
+                        <th>留存率</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="row in retentionRows" :key="row.period_start">
+                        <td>{{ row.period_start }}</td>
+                        <td>{{ row.new_user_count }}</td>
+                        <td>{{ row.day1_retention }}</td>
+                        <td>{{ row.day1_rate }}</td>
+                      </tr>
+                      <tr v-if="!retentionRows.length">
+                        <td colspan="4" class="table-empty">暂无留存数据</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </template>
+
+              <template v-else-if="state.activeView === 'timeline'">
+                <div class="table-shell">
+                  <table class="data-table">
+                    <thead>
+                      <tr>
+                        <th>事件</th>
+                        <th>时间</th>
+                        <th>平台</th>
+                        <th>国家</th>
+                        <th>IP</th>
+                        <th>Body</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="row in timelineRows" :key="`${row.log_time}-${row.name}-${row.ip}`">
+                        <td>{{ safeText(row.name) }}</td>
+                        <td>{{ safeText(row.log_time) }}</td>
+                        <td>{{ safeText(row.platform) }}</td>
+                        <td>{{ safeText(row.country_code) }}</td>
+                        <td>{{ safeText(row.ip) }}</td>
+                        <td class="body-cell">{{ safeText(row.body, '') }}</td>
+                      </tr>
+                      <tr v-if="!timelineRows.length">
+                        <td colspan="6" class="table-empty">暂无时间线数据</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </template>
+
+              <template v-else>
+                <section class="metadata-grid">
+                  <article class="meta-card">
+                    <span>筛选字段</span>
+                    <strong>{{ state.metadata.filters.length }}</strong>
+                    <p>{{ state.metadata.filters.join(' / ') || '等待加载' }}</p>
+                  </article>
+                  <article class="meta-card">
+                    <span>分组字段</span>
+                    <strong>{{ state.metadata.groupBy.length }}</strong>
+                    <p>{{ state.metadata.groupBy.join(' / ') || '等待加载' }}</p>
+                  </article>
+                  <article class="meta-card">
+                    <span>指标字段</span>
+                    <strong>{{ state.metadata.metrics.length }}</strong>
+                    <p>{{ state.metadata.metrics.join(' / ') || '等待加载' }}</p>
+                  </article>
+                </section>
+
+                <div class="meta-lists">
+                  <article class="meta-list-card">
+                    <div class="filter-label-row">
+                      <strong>事件池</strong>
+                      <small>{{ state.metadata.events.length }} 项</small>
+                    </div>
+                    <div class="chip-list scroll-list static-view">
+                      <span v-for="item in state.metadata.events" :key="item" class="status-pill">{{ item }}</span>
+                    </div>
+                  </article>
+
+                  <article class="meta-list-card">
+                    <div class="filter-label-row">
+                      <strong>国家池</strong>
+                      <small>{{ state.metadata.countries.length }} 项</small>
+                    </div>
+                    <div class="chip-list scroll-list static-view">
+                      <span v-for="item in countryOptions" :key="item.value" class="status-pill">{{ item.label }}</span>
+                    </div>
+                  </article>
+
+                  <article class="meta-list-card">
+                    <div class="filter-label-row">
+                      <strong>字段白名单</strong>
+                      <small>{{ state.metadata.fields.length }} 项</small>
+                    </div>
+                    <div class="chip-list scroll-list static-view">
+                      <span v-for="item in state.metadata.fields" :key="item" class="status-pill">{{ item }}</span>
+                    </div>
+                  </article>
+                </div>
+              </template>
+            </template>
+          </section>
         </section>
       </main>
     </div>
 
     <div class="drawer-mask" :class="{ open: state.drawerOpen }" @click="closeDrawer"></div>
-    <aside class="drawer" :class="{ open: state.drawerOpen }" aria-label="详情抽屉">
+    <aside class="drawer" :class="{ open: state.drawerOpen }" aria-label="用户时间线详情">
       <div class="drawer-header">
         <div>
-          <p class="section-note">Details</p>
+          <p class="section-note">Timeline</p>
           <h2>{{ state.drawerTitle }}</h2>
         </div>
         <button class="drawer-close" @click="closeDrawer">×</button>
       </div>
 
-      <div v-if="state.drawerMode === 'timeline'" class="content-toolbar drawer-toolbar">
+      <div class="content-toolbar drawer-toolbar">
         <label class="toolbar-field grow">
           <span>搜索事件</span>
-          <input v-model.trim="state.drawerSearch" type="text" placeholder="搜索事件名称、IP、设备或内容">
+          <input v-model.trim="state.drawerSearch" type="text" placeholder="搜索事件、IP、设备、Body">
         </label>
-        <button class="secondary-button" @click="toggleDrawerSort">{{ drawerSortButtonLabel }}</button>
+        <button class="secondary-button" @click="toggleDrawerSort">
+          {{ state.drawerSortOrder === 'DESC' ? '时间倒序' : '时间正序' }}
+        </button>
       </div>
 
       <div class="drawer-body">
-        <div v-if="state.drawerMode === 'timeline'" class="timeline-list">
+        <div class="timeline-list">
           <article
-            v-for="item in filteredDrawerTimeline"
-            :key="`${item.log_time}-${item.name}-${item.ip}`"
+            v-for="row in filteredDrawerRows"
+            :key="`${row.log_time}-${row.name}-${row.ip}`"
             class="timeline-card"
           >
             <div class="timeline-head">
-              <strong>{{ safeText(item.name, 'N/A') }}</strong>
-              <span>{{ safeText(item.log_time, 'N/A') }}</span>
+              <strong>{{ safeText(row.name) }}</strong>
+              <span>{{ safeText(row.log_time) }}</span>
             </div>
             <div class="timeline-grid">
-              <p><span>IP</span>{{ safeText(item.ip, 'N/A') }}</p>
-              <p><span>设备</span>{{ safeText(item.device, 'N/A') }}</p>
-              <p><span>地区</span>{{ safeText(item.area, 'N/A') }}</p>
-              <p><span>VPN</span>{{ item.vpn_status === 1 ? '开启' : '关闭' }}</p>
+              <p><span>User</span>{{ safeText(row.user_id) }}</p>
+              <p><span>Platform</span>{{ safeText(row.platform) }}</p>
+              <p><span>Country</span>{{ safeText(row.country_code) }}</p>
+              <p><span>IP</span>{{ safeText(row.ip) }}</p>
+              <p><span>Device</span>{{ safeText(row.device) }}</p>
+              <p><span>Area</span>{{ safeText(row.area) }}</p>
             </div>
-            <div v-if="formatBodyContent(item.body).length" class="timeline-body">
+            <div v-if="safeText(row.body, '') !== ''" class="timeline-body">
               <span>Body</span>
-              <ul>
-                <li v-for="entry in formatBodyContent(item.body)" :key="entry">{{ entry }}</li>
-              </ul>
+              <p>{{ row.body }}</p>
             </div>
           </article>
-          <div v-if="!filteredDrawerTimeline.length" class="empty-panel">
+
+          <div v-if="!filteredDrawerRows.length" class="empty-panel">
             <strong>暂无匹配事件</strong>
           </div>
-        </div>
-
-        <div v-else class="table-shell">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>User ID</th>
-                <th>国家</th>
-                <th>最后时间</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="item in state.drawerList" :key="`${item.user_id}-${item.log_time}`">
-                <td>{{ safeText(item.user_id, 'N/A') }}</td>
-                <td>{{ safeText(item.country_code, 'N/A') }}</td>
-                <td>{{ safeText(item.log_time, 'N/A') }}</td>
-              </tr>
-              <tr v-if="!state.drawerList.length">
-                <td colspan="3" class="table-empty">暂无可展示数据</td>
-              </tr>
-            </tbody>
-          </table>
         </div>
       </div>
     </aside>
   </div>
 
-  <script type="module" src="./app.js"></script>
+  <script src="./vendor/vue.global.prod.js"></script>
+  <script src="./app.js"></script>
 </body>
 </html>
